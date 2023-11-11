@@ -1,0 +1,10 @@
+<h1>Account name: <%= @account.name %></h1>
+<div>
+    IAM ID: <%= @account.iam_access_key_id %>
+</div>
+<div>
+    <%= link_to "Start here: Analyses", account_analyses_path(@account) %>
+</div>
+<div>
+    <%= link_to "Back to Accounts", accounts_path %>
+</div>

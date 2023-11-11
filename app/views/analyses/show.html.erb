@@ -1,0 +1,20 @@
+<h1>Here are all your juicy recommendations</h1>
+<p>
+    Analysis ID: <%= @analysis.id %>
+</p>
+<p>
+    Started At: <%= @analysis.created_at %>
+</p>
+<p>
+    <% if @analysis.source_file.attached? %>
+        <%= link_to rails_blob_path(@analysis.source_file, disposition: "attachment") do %>
+            <%= image_tag @analysis.source_file, alt: "Download source file" %>
+        <% end %>
+    <% end %>
+</p>
+<div>
+    PUT ANALYSIS HERE
+</div>
+<div>
+    <%= link_to "Back to Analyses", account_analyses_path(@account) %>
+</div>

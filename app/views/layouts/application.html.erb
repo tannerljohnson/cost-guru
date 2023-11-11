@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CostGuru</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body>
+       <p class="notice"><%= notice %></p>
+       <p class="alert"><%= alert %></p>
+        <div>
+          <% if user_signed_in? %>
+            <span class="text-secondary">
+              Hi, <%= current_user.first_name %>
+            </span>
+            <span><%= link_to "Sign out", destroy_user_session_path %></span>
+          <% end %>
+        </div>
+    <%= yield %>
+  </body>
+</html>

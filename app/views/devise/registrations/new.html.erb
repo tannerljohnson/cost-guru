@@ -1,0 +1,10 @@
+<h2>Sign up</h2>
+
+<%= button_to user_google_oauth2_omniauth_authorize_path, method: :post, "data-turbo": false do %>
+  <div class='d-flex align-items-center justify-content-center'>
+    <%= image_tag 'google-logo.svg', height: '18', class: 'mr-2' %>
+    <span>Sign up with Google</span>
+  </div>
+<% end %>
+
+<%= render "devise/shared/links" %>

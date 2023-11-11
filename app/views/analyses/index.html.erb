@@ -1,0 +1,21 @@
+<h1>Welcome to CostGuru, <%= @account.name %>!</h1>
+<p>Upload your AWS cost explorer data, and we'll give you recommendataions to save $$.</p>
+
+<ol>
+    <% @analyses.each do |analysis| %>
+        <li>
+            <a href="/analyses/<%= analysis.id %>">
+            <a href="<%= account_analysis_path(@account, analysis) %>">
+                <%= analysis.id %>
+            </a>
+             <%= analysis.created_at %> 
+        </li>
+    <% end %>
+</ol>
+
+<div>
+    <%= link_to "New Analysis", new_account_analysis_path %>
+</div>
+<div>
+    <%= link_to "Back to Accounts", accounts_path %>
+</div>
