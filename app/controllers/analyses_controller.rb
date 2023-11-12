@@ -40,6 +40,7 @@ class AnalysesController < ApplicationController
       enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount, 
       csp_prime: @analysis.optimal_hourly_commit
     )
+    @last_ninety_days = CostExplorer.get_cost_summary(account: @account).fetch(:last_ninety_days)
   end
 
   def destroy

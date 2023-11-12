@@ -40,7 +40,7 @@
         </div>
     </div>
     <br/>
-    <h1>Current vs New Coverage</h1>
+    <h2>Current vs New Coverage</h2>
     <%
         chart_data = [
             {
@@ -54,6 +54,9 @@
         ]
     %>
     <%= line_chart(chart_data) %>
+    <br/>
+    <h2>Last 3 Months Lookback</h2>
+    <%= line_chart(@last_ninety_days) %>
     <br/>
     <h3>Breakdown</h3>
     <table class="table">

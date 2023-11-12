@@ -45,7 +45,32 @@ class CostExplorer
         {
             this_month_current_by_day: get_this_month_current_by_day,
             this_month_forecast_by_day: get_this_month_forecast_by_day,
+            last_ninety_days: get_last_ninety_days
         }
+    end
+
+    def get_last_ninety_days
+        today = Date.today
+        ninety_days_ago = today - 90
+        start_date = ninety_days_ago.strftime('%Y-%m-%d')
+        end_date = today.strftime('%Y-%m-%d')
+        response = client.get_cost_and_usage({
+            time_period: {
+              start: start_date,
+              end: end_date
+            },
+            granularity: 'DAILY',
+            metrics: ['AMORTIZED_COST']
+          })
+
+        
+        cost_summary = response.results_by_time.map do |result| 
+            [
+                result.time_period.start,
+                result.total['AmortizedCost'].amount.to_f.round(2)
+            ]   
+        end
+        return cost_summary
     end
 
     def get_this_month_current_by_day
