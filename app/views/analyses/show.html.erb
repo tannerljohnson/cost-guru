@@ -22,7 +22,7 @@
     <div>
         <h3>Summary</h3>
         <div>
-            Optimal hourly commit: $<%= @analysis.optimal_hourly_commit.round(4) %>
+            Optimal hourly commit: <b>$<%= @analysis.optimal_hourly_commit.round(4) %></b>
         </div>
         <div>
             New monthly savings: <%= number_to_currency(@full_dataset.sum { |row| row[:savings] } * 30.4 / @full_dataset.count) %>
@@ -56,23 +56,23 @@
     <%= line_chart(chart_data) %>
     <br/>
     <h3>Breakdown</h3>
-    <table>
+    <table class="table">
         <thead>
-            <th>Day</th>
-            <th>OD post-EDP discount</th>
-            <th>Savings Plans</th>
-            <th>OD covered by CSP</th>
-            <th>Total OD Dollars</th>
-            <th>Coverage</th>
-            <th>OD pre-EDP discount</th>
-            <th>Total we spend today</th>
-            <th>CSP' (new commit)</th>
-            <th>CSP' in on demand dollars</th>
-            <th>OD pre-EDP, post apply CSP'</th>
-            <th>OD post-EDP, post CSP'</th>
-            <th>New Total</th>
-            <th>Savings</th>
-            <th>New Coverage</th>
+            <th scope="col">Day</th>
+            <th scope="col">OD post-EDP discount</th>
+            <th scope="col">Savings Plans</th>
+            <th scope="col">OD covered by CSP</th>
+            <th scope="col">Total OD Dollars</th>
+            <th scope="col">Coverage</th>
+            <th scope="col">OD pre-EDP discount</th>
+            <th scope="col">Total we spend today</th>
+            <th scope="col">CSP' (new commit)</th>
+            <th scope="col">CSP' in on demand dollars</th>
+            <th scope="col">OD pre-EDP, post apply CSP'</th>
+            <th scope="col">OD post-EDP, post CSP'</th>
+            <th scope="col">New Total</th>
+            <th scope="col">Savings</th>
+            <th scope="col">New Coverage</th>
         </thead>
         <tbody>
             <% @full_dataset.each do |row| %>
