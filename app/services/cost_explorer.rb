@@ -1,6 +1,6 @@
 class CostExplorer
     CSP_DISCOUNT_RATE = 0.51
-    
+
     def self.get_cost_summary(account:)
         new(account: account).get_cost_summary
     end
@@ -27,8 +27,8 @@ class CostExplorer
 
     def initialize(account:, start_date: nil, end_date: nil, enterprise_cross_service_discount: nil)
         @account = account
-        @start_date = start_date.strftime('%Y-%m-%d') 
-        @end_date = end_date.strftime('%Y-%m-%d')
+        @start_date = start_date&.strftime('%Y-%m-%d') 
+        @end_date = end_date&.strftime('%Y-%m-%d')
         @enterprise_cross_service_discount = enterprise_cross_service_discount || 0
         initialize_client
     end
@@ -65,10 +65,16 @@ class CostExplorer
 
     def get_this_month_forecast
         today = Date.today
+        tomorrow = today + 1
+        end_of_month = today.end_of_month
+
+        start_date = tomorrow.strftime('%Y-%m-%d')
+        end_date = end_of_month.strftime('%Y-%m-%d')
+
         response = client.get_cost_forecast({
             time_period: {
-                start: today.strftime('%Y-%m-%d'),
-                end: (today + 1.month).strftime('%Y-%m-%d') # Forecast for the next month
+                start: start_date,
+                end: end_date
             },
             granularity: 'MONTHLY',
             metric: 'AMORTIZED_COST'
@@ -86,6 +92,7 @@ class CostExplorer
         epsilon = 1e-3
 
         while (high - low) > epsilon
+            puts "Running binary search #{low} to #{high}"
             mid1 = low + (high - low) / 3
             mid2 = high - (high - low) / 3
         

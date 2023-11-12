@@ -29,7 +29,14 @@ class AnalysesController < ApplicationController
   def show
     @account = Account.find(params[:account_id])
     @analysis = @account.analyses.find { |a| a.id === params[:id] }
-    @optimal_csp_prime = CostExplorer.compute_optimal_csp_prime(account: @account, start_date: @analysis.start_date, end_date: @analysis.end_date, enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount)
+    if @analysis.optimal_hourly_commit.present?
+      @optimal_csp_prime = @analysis.optimal_hourly_commit  
+    else
+      @optimal_csp_prime = CostExplorer.compute_optimal_csp_prime(account: @account, start_date: @analysis.start_date, end_date: @analysis.end_date, enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount)  
+      # Cache result
+      @analysis.optimal_hourly_commit = @optimal_csp_prime
+      @analysis.save!
+    end
     @full_dataset = CostExplorer.get_full_dataset(account: @account, start_date: @analysis.start_date, end_date: @analysis.end_date, enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount, csp_prime: @optimal_csp_prime)
   end
 end

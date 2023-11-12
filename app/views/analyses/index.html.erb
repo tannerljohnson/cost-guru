@@ -4,11 +4,15 @@
 <ol>
     <% @analyses.each do |analysis| %>
         <li>
+            <%= analysis.created_at.to_date %> 
             <a href="/analyses/<%= analysis.id %>">
             <a href="<%= account_analysis_path(@account, analysis) %>">
                 <%= analysis.id %>
             </a>
-             <%= analysis.created_at %> 
+             <%= analysis.start_date.to_s.to_date %>
+             <%= analysis.end_date.to_s.to_date %>
+             <%= analysis.enterprise_cross_service_discount %>
+             <%= analysis.optimal_hourly_commit&.round(2) %>
         </li>
     <% end %>
 </ol>

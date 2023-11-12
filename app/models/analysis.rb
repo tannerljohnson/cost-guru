@@ -9,6 +9,7 @@
 #  enterprise_cross_service_discount :float
 #  start_date                        :datetime
 #  end_date                          :datetime
+#  optimal_hourly_commit             :float
 #
 class Analysis < ApplicationRecord
     belongs_to :account
