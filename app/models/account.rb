@@ -14,6 +14,8 @@ class Account < ApplicationRecord
     belongs_to :user
     has_many :analyses, dependent: :destroy
 
+    default_scope { order(created_at: :desc) }
+
     encrypts :iam_secret_access_key
 
     def is_connected?

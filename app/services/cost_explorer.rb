@@ -9,14 +9,6 @@ class CostExplorer
         new(account: account).get_compute_savings_plans_inventory
     end
 
-    def self.get_compute_savings_plan_spending_by_day(account:, start_date:, end_date:)
-        new(account: account, start_date: start_date, end_date: end_date).get_compute_savings_plan_spending_by_day
-    end
-
-    def self.get_cost_and_usage(account:, start_date:, end_date:)
-        new(account: account, start_date: start_date, end_date: end_date).get_cost_and_usage
-    end
-
     def self.get_full_dataset(account:, start_date:, end_date:, enterprise_cross_service_discount:, csp_prime:)
         new(account: account, start_date: start_date, end_date: end_date, enterprise_cross_service_discount: enterprise_cross_service_discount).get_full_dataset(csp_prime)
     end
@@ -29,12 +21,12 @@ class CostExplorer
         @account = account
         @start_date = start_date&.strftime('%Y-%m-%d') 
         @end_date = end_date&.strftime('%Y-%m-%d')
-        @enterprise_cross_service_discount = enterprise_cross_service_discount || 0
+        @enterprise_cross_service_discount = enterprise_cross_service_discount
         initialize_client
     end
     private_class_method :new
 
-    attr_reader :account, :client, :start_date, :end_date, :enterprise_cross_service_discount
+    attr_reader :account, :client, :start_date, :end_date, :enterprise_cross_service_discount, :eligible_compute_cost_and_usage
 
     def get_cost_summary
         {
@@ -113,7 +105,7 @@ class CostExplorer
 
     def get_full_dataset(csp_prime)
         csp_prime_in_on_demand = csp_prime / (1 - CSP_DISCOUNT_RATE)
-        on_demand_post_discount = get_cost_and_usage
+        on_demand_post_discount = eligible_compute_cost_and_usage
         savings_plans = get_compute_savings_plan_spending_by_day
         rows = (Date.parse(start_date)...Date.parse(end_date)).to_a.each_with_index.map do |date, i|
             on_demand_post_discount_unit = on_demand_post_discount[i].to_f
@@ -145,27 +137,20 @@ class CostExplorer
         rows
     end
 
-    def get_cost_and_usage
-        filters = [
-            { dimensions: { key: "PURCHASE_TYPE", values: ["On Demand Instances"] } },
-            { dimensions: { key: "SERVICE", values: ["Amazon Elastic Compute Cloud - Compute", "AWS Lambda"] } },
-            # { dimensions: { key: "USAGE_TYPE", exclude_values: ["AP-DataTransfer-Out-Bytes"] } }
-          ]
-        response = client.get_cost_and_usage({
-            time_period: { 
-                start: start_date, 
-                end: end_date 
+    def eligible_compute_cost_and_usage
+        @eligible_compute_cost_and_usage ||= get_cost_and_usage(
+            start_date: start_date,
+            end_date: end_date,
+            filter: {
+                and: [
+                    { dimensions: { key: "PURCHASE_TYPE", values: ["On Demand Instances"] } },
+                    { dimensions: { key: "SERVICE", values: ["Amazon Elastic Compute Cloud - Compute", "AWS Lambda"] } },
+                    # { dimensions: { key: "USAGE_TYPE", exclude_values: ["AP-DataTransfer-Out-Bytes"] } }
+                  ]
             },
             granularity: 'DAILY',
-            metrics: ['NetAmortizedCost'],
-            filter: { 
-                and: filters
-            },
-        })
-
-        response.results_by_time.map do |result|
-            result.total['NetAmortizedCost'].amount
-        end
+            metrics: 'NetAmortizedCost'
+        ).results_by_time.map { |result| result.total['NetAmortizedCost'].amount }
     end
 
     def get_compute_savings_plans_inventory
@@ -224,6 +209,18 @@ class CostExplorer
         # Extract and return the spending data
         spending_data = response.savings_plans_utilizations_by_time
         return spending_data
+    end
+
+    def get_cost_and_usage(start_date:, end_date:, filter: nil, granularity: 'DAILY', metrics: 'NetAmortizedCost')
+        client.get_cost_and_usage(
+            time_period: {
+                start: start_date,
+                end: end_date
+            },
+            granularity: granularity,
+            metrics: [metrics],
+            filter: filter
+        )
     end
 
     def initialize_client

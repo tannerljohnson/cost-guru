@@ -1,42 +1,54 @@
 class AnalysesController < ApplicationController
   before_action :authenticate_user!
+  before_action :load_account!
 
   def index
-    @account = Account.find(params[:account_id])
-    @analyses = Analysis.where(account: @account)
+    @analyses = @account.analyses.order(created_at: :desc)
   end
 
   def new
-    @account = Account.find(params[:account_id])
-    @analysis = Analysis.new(account: @account)
+    @analysis = @account.analyses.new(
+      start_date: Date.today.beginning_of_month, 
+      end_date: Date.today,
+      enterprise_cross_service_discount: @account.analyses.last.enterprise_cross_service_discount
+    )
   end
 
   def create
-    @account = Account.find(params[:account_id])
-    @analysis = Analysis.new(
+    @analysis = @account.analyses.new(analysis_params)
+    @optimal_csp_prime = CostExplorer.compute_optimal_csp_prime(
       account: @account, 
-      start_date: params[:analysis][:start_date], 
-      end_date: params[:analysis][:end_date], 
-      enterprise_cross_service_discount: params[:analysis][:enterprise_cross_service_discount]
+      start_date: @analysis.start_date, 
+      end_date: @analysis.end_date, 
+      enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount
     )
+    @analysis.optimal_hourly_commit = @optimal_csp_prime
     if @analysis.save
-      redirect_to account_analyses_path
+      redirect_to account_analysis_path(@account, @analysis)
     else
       render :new, status: :unprocessable_entity
     end
   end
 
   def show
-    @account = Account.find(params[:account_id])
     @analysis = @account.analyses.find { |a| a.id === params[:id] }
-    if @analysis.optimal_hourly_commit.present?
-      @optimal_csp_prime = @analysis.optimal_hourly_commit  
-    else
-      @optimal_csp_prime = CostExplorer.compute_optimal_csp_prime(account: @account, start_date: @analysis.start_date, end_date: @analysis.end_date, enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount)  
-      # Cache result
-      @analysis.optimal_hourly_commit = @optimal_csp_prime
-      @analysis.save!
-    end
-    @full_dataset = CostExplorer.get_full_dataset(account: @account, start_date: @analysis.start_date, end_date: @analysis.end_date, enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount, csp_prime: @optimal_csp_prime)
+    @full_dataset = CostExplorer.get_full_dataset(
+      account: @account, 
+      start_date: @analysis.start_date, 
+      end_date: @analysis.end_date, 
+      enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount, 
+      csp_prime: @analysis.optimal_hourly_commit
+    )
+  end
+
+  private 
+
+  def analysis_params
+    params.require(:analysis).permit(:start_date, :end_date, :enterprise_cross_service_discount)
+  end
+
+  def load_account!
+    @account = current_user.accounts.find { |account| account.id == params[:account_id] }
+    raise "Account not found" unless @account
   end
 end

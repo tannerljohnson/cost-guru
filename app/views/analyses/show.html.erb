@@ -18,7 +18,7 @@
 <div>
     <h3>Summary</h3>
     <div>
-        Optimal hourly commit: $<%= @optimal_csp_prime.round(4) %>
+        Optimal hourly commit: $<%= @analysis.optimal_hourly_commit.round(4) %>
     </div>
     <div>
         New monthly savings: <%= number_to_currency(@full_dataset.sum { |row| row[:savings] } * 30.4 / @full_dataset.count) %>

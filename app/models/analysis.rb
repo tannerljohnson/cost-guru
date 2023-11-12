@@ -13,4 +13,5 @@
 #
 class Analysis < ApplicationRecord
     belongs_to :account
+    default_scope { order(created_at: :desc) }
 end

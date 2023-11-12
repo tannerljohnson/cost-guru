@@ -6,16 +6,11 @@ class AccountsController < ApplicationController
     end
 
     def new
-        @account = Account.new
+        @account = current_user.accounts.new
     end
 
     def create
-        @account = Account.new(
-            name: params[:account][:name], 
-            iam_access_key_id: params[:account][:iam_access_key_id], 
-            iam_secret_access_key: params[:account][:iam_secret_access_key]
-            )
-        @account.user = current_user
+        @account = current_user.accounts.new(account_params)
         if @account.save
           redirect_to account_analyses_path(@account)
         else
@@ -24,8 +19,15 @@ class AccountsController < ApplicationController
     end
 
     def show
-        @account = Account.find(params[:id])
+        @account = current_user.accounts.find { |account| account.id == params[:id] }
+        raise "Account not found" unless @account
+
         @cost_summary = CostExplorer.get_cost_summary(account: @account)
-        # redirect_to account_analyses_path(@account)
+    end
+
+    private
+
+    def account_params
+        params.require(:account).permit(:name, :iam_access_key_id, :iam_secret_access_key)
     end
 end
