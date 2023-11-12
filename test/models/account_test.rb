@@ -9,6 +9,7 @@
 #  user_id               :uuid
 #  iam_access_key_id     :string
 #  iam_secret_access_key :string
+#  role_arn              :string
 #
 require "test_helper"
 

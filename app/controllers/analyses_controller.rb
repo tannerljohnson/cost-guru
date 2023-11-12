@@ -16,14 +16,15 @@ class AnalysesController < ApplicationController
 
   def create
     @analysis = @account.analyses.new(analysis_params)
-    @optimal_csp_prime = CostExplorer.compute_optimal_csp_prime(
+    @optimize_commit_results = CostExplorer.compute_optimal_csp_prime(
       account: @account, 
       start_date: @analysis.start_date, 
       end_date: @analysis.end_date, 
       enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount,
       granularity: @analysis.granularity
     )
-    @analysis.optimal_hourly_commit = @optimal_csp_prime
+     
+    @analysis.optimal_hourly_commit = @optimize_commit_results[:value]
     if @analysis.save
       redirect_to account_analysis_path(@account, @analysis)
     else
@@ -41,6 +42,13 @@ class AnalysesController < ApplicationController
       csp_prime: @analysis.optimal_hourly_commit
     )
     @last_ninety_days = CostExplorer.get_cost_summary(account: @account).fetch(:last_ninety_days)
+    @optimize_commit_results = CostExplorer.compute_optimal_csp_prime(
+      account: @account, 
+      start_date: @analysis.start_date, 
+      end_date: @analysis.end_date, 
+      enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount,
+      granularity: @analysis.granularity
+    )
   end
 
   def destroy

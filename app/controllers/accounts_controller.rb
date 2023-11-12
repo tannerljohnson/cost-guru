@@ -18,6 +18,21 @@ class AccountsController < ApplicationController
         end
     end
 
+    def edit
+        @account = current_user.accounts.find { |account| account.id == params[:id] }
+        raise "Account not found" unless @account
+    end
+
+    def update
+        @account = current_user.accounts.find { |account| account.id == params[:id] }
+
+        if @account.update(account_params)
+          redirect_to account_analyses_path(@account)
+        else
+          render :edit, status: :unprocessable_entity
+        end
+    end
+
     def show
         @account = current_user.accounts.find { |account| account.id == params[:id] }
         raise "Account not found" unless @account
@@ -28,6 +43,6 @@ class AccountsController < ApplicationController
     private
 
     def account_params
-        params.require(:account).permit(:name, :iam_access_key_id, :iam_secret_access_key)
+        params.require(:account).permit(:name, :iam_access_key_id, :iam_secret_access_key, :role_arn)
     end
 end

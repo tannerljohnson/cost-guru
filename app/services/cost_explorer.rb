@@ -9,8 +9,20 @@ class CostExplorer
         new(account: account).get_compute_savings_plans_inventory
     end
 
-    def self.get_full_dataset(account:, start_date:, end_date:, enterprise_cross_service_discount:, csp_prime:)
-        new(account: account, start_date: start_date, end_date: end_date, enterprise_cross_service_discount: enterprise_cross_service_discount).get_full_dataset(csp_prime)
+    def self.get_full_dataset(
+        account:, 
+        start_date:, 
+        end_date:, 
+        enterprise_cross_service_discount:, 
+        csp_prime:
+    )
+        new(
+            account: account, 
+            start_date: start_date, 
+            end_date: end_date, 
+            enterprise_cross_service_discount: 
+            enterprise_cross_service_discount
+        ).get_full_dataset(csp_prime)
     end
 
     def self.compute_optimal_csp_prime(
@@ -129,21 +141,40 @@ class CostExplorer
         low = 0.0
         high = 10_000.0
         epsilon = 1e-3
+        data_points = []
 
         while (high - low) > epsilon
             puts "Running binary search #{low} to #{high}"
             mid1 = low + (high - low) / 3
             mid2 = high - (high - low) / 3
+
+            mid1_savings = get_monthly_savings_for_dataset(get_full_dataset(mid1))
+            mid2_savings = get_monthly_savings_for_dataset(get_full_dataset(mid2))
+            data_points << [mid1, mid1_savings]
+            data_points << [mid2, mid2_savings]
         
-            if get_monthly_savings_for_dataset(get_full_dataset(mid1)) > get_monthly_savings_for_dataset(get_full_dataset(mid2))
+            if mid1_savings > mid2_savings
               high = mid2
             else
               low = mid1
             end
         end
-        
+
         optimal = (low + high) / 2
-        return optimal
+        optimal_savings = get_monthly_savings_for_dataset(get_full_dataset(optimal))
+        data_points << [optimal, optimal_savings]
+        sorted_data_points = data_points.sort_by { |data| data[0] }
+
+        # cut it into even chunks?
+        chunk_size = sorted_data_points.count / 30
+        chart_data = sorted_data_points.each_with_index.filter do |data, i|
+            i % 4 == 0 && data[1] > -10
+        end.map { |d| d[0] }
+
+        return {
+            value: optimal,
+            data: chart_data
+        }
     end
 
     def get_monthly_savings_for_dataset(dataset)
@@ -273,10 +304,31 @@ class CostExplorer
     end
 
     def initialize_client
-        return unless account.iam_access_key_id && account.iam_secret_access_key
+        return unless account.is_connected?
 
         Aws.config.update({ region: 'us-west-2' })
-        credentials = Aws::Credentials.new(account.iam_access_key_id, account.iam_secret_access_key)
+        
+        # Prefer cross account role connector
+        if account.cross_account_role_connected?
+            # TODO: Replace this with a real thing
+            cost_guru_aws_account_credentials = Aws::Credentials.new(
+                Rails.application.credentials.root_aws_account.sts_assume_role_user.iam_access_key_id, 
+                Rails.application.credentials.root_aws_account.sts_assume_role_user.iam_secret_access_key
+            )
+            sts_client = Aws::STS::Client.new(credentials: cost_guru_aws_account_credentials)
+            response = sts_client.assume_role({
+                role_arn: account.role_arn,
+                role_session_name: "STSSession#{account.name}#{Time.now.to_i}",
+            })
+            # Use the temporary credentials obtained from the response to make AWS Cost Explorer API requests
+            credentials = Aws::Credentials.new(response.credentials.access_key_id, response.credentials.secret_access_key, response.credentials.session_token)
+        elsif account.iam_connected?
+            credentials = Aws::Credentials.new(account.iam_access_key_id, account.iam_secret_access_key)
+        else
+            raise "Unknown connection"
+        end
+        
+        
         @client = Aws::CostExplorer::Client.new(credentials: credentials)
     end
 end

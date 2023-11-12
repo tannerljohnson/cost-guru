@@ -6,10 +6,11 @@
 #  updated_at                        :datetime         not null
 #  id                                :uuid             not null, primary key
 #  account_id                        :uuid
-#  enterprise_cross_service_discount :float
+#  enterprise_cross_service_discount :float            default(0.0), not null
 #  start_date                        :datetime
 #  end_date                          :datetime
 #  optimal_hourly_commit             :float
+#  granularity                       :string           default("daily"), not null
 #
 class Analysis < ApplicationRecord
     belongs_to :account
