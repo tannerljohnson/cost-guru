@@ -1,7 +1,22 @@
 <h1>New analysis</h1>
 <p>Input fields here.</p>
-<%= form_for [@account, @analysis] do |form| %>
+<%= form_for [@account, @analysis] do |f| %>
+    <div class="field">
+        <%= f.label :start_date %>
+        <%= f.datetime_local_field :start_date %>
+    </div>
+
+    <div class="field">
+        <%= f.label :end_date %>
+        <%= f.datetime_local_field :end_date %>
+    </div>
+
+    <div class="field">
+        <%= f.label :enterprise_cross_service_discount_percentage %>
+        <%= f.number_field :enterprise_cross_service_discount %>
+    </div>
+   
     <div>
-        <%= form.submit %>
+        <%= f.submit %>
     </div>
 <% end %>

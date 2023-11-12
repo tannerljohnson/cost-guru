@@ -25,6 +25,7 @@ class AccountsController < ApplicationController
 
     def show
         @account = Account.find(params[:id])
+        @cost_summary = CostExplorer.get_cost_summary(account: @account)
         # redirect_to account_analyses_path(@account)
     end
 end

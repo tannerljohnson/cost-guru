@@ -13,8 +13,12 @@ class AnalysesController < ApplicationController
 
   def create
     @account = Account.find(params[:account_id])
-    @analysis = Analysis.new(account: @account)
-    @analysis.source_file.attach(params[:analysis][:source_file])
+    @analysis = Analysis.new(
+      account: @account, 
+      start_date: params[:analysis][:start_date], 
+      end_date: params[:analysis][:end_date], 
+      enterprise_cross_service_discount: params[:analysis][:enterprise_cross_service_discount]
+    )
     if @analysis.save
       redirect_to account_analyses_path
     else
@@ -25,5 +29,7 @@ class AnalysesController < ApplicationController
   def show
     @account = Account.find(params[:account_id])
     @analysis = @account.analyses.find { |a| a.id === params[:id] }
+    @optimal_csp_prime = CostExplorer.compute_optimal_csp_prime(account: @account, start_date: @analysis.start_date, end_date: @analysis.end_date, enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount)
+    @full_dataset = CostExplorer.get_full_dataset(account: @account, start_date: @analysis.start_date, end_date: @analysis.end_date, enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount, csp_prime: @optimal_csp_prime)
   end
 end

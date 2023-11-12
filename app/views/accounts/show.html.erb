@@ -1,9 +1,24 @@
-<h1>Account name: <%= @account.name %></h1>
+<h1><%= @account.name %> Account Overview</h1>
 <div>
-    IAM ID: <%= @account.iam_access_key_id %>
+    <% if @account.is_connected? %>
+        ✅ Connected
+    <% else %>
+        ❌ Not connected
+    <% end %>
+</div>
+<h2>Cost Overview</h2>
+<div>
+    Current spend this month: <%= number_to_currency(@cost_summary[:this_month_current]) %>
 </div>
 <div>
-    <%= link_to "Start here: Analyses", account_analyses_path(@account) %>
+    Expected month-end costs: <%= number_to_currency(@cost_summary[:this_month_forecast]) %>
+</div>
+<div>
+    How far are we through the month? <%= TimeHelpers.percentage_of_month_passed %>%
+</div>
+<br/>
+<div>
+    <%= link_to "CSP Analyses for #{@account.name}", account_analyses_path(@account) %>
 </div>
 <div>
     <%= link_to "Back to Accounts", accounts_path %>
