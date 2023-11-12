@@ -11,21 +11,37 @@
   </head>
 
   <body>
-      <div>
-        <% flash.each do |type, msg| %>
-          <div class="alert alert-<%= type == 'alert' ? 'danger' : 'primary' %>" role="alert">
-            <%= msg.html_safe if msg %>
-          </div>
-        <% end %>
-      </div>
+    <nav class="navbar navbar-dark bg-dark">
+      <div class="container-fluid">
+        <div>
+          <a href="<%= root_url %>" class="btn btn-outline-light" data-turbolinks-action="replace">
+            Home
+          </a>
+        </div>
+
         <div>
           <% if user_signed_in? %>
             <span class="text-secondary">
               Hi, <%= current_user.first_name %>
             </span>
-            <span><%= link_to "Sign out", destroy_user_session_path %></span>
           <% end %>
+          <a href="<%= destroy_user_session_path %>" data-turbolinks-action="replace" class="btn btn-outline-primary">
+            Sign Out
+          </a>
         </div>
-    <%= yield %>
+      </div>
+    </nav>
+    <div>
+      <% flash.each do |type, msg| %>
+        <div class="alert alert-<%= type == 'alert' ? 'danger' : 'primary' %>" role="alert">
+          <%= msg.html_safe if msg %>
+        </div>
+      <% end %>
+    </div>
+
+    <br/>
+    <main>
+      <%= yield %>
+    </main>
   </body>
 </html>

@@ -1,103 +1,105 @@
-<h1>Recommendations for new compute savings plan to optimize savings</h1>
-<div>
-    Analysis ID: <%= @analysis.id %>
-</div>
-<div>
-    Ran analysis at: <%= @analysis.created_at %>
-</div>
-<h3>Inputs</h3>
-<div>
-    Start date: <%= @analysis.start_date %>
-</div>
-<div>
-    End date: <%= @analysis.end_date %>
-</div>
-<div>
-    Granularity: <%= @analysis.granularity %>
-</div>
-<div>
-    Enterprise cross-service discount: <%= @analysis.enterprise_cross_service_discount %>%
-</div>
-<div>
-    <h3>Summary</h3>
+<section class="container">
+    <h1>Recommendations for new compute savings plan to optimize savings</h1>
     <div>
-        Optimal hourly commit: $<%= @analysis.optimal_hourly_commit.round(4) %>
+        Analysis ID: <%= @analysis.id %>
     </div>
     <div>
-        New monthly savings: <%= number_to_currency(@full_dataset.sum { |row| row[:savings] } * 30.4 / @full_dataset.count) %>
+        Ran analysis at: <%= @analysis.created_at %>
+    </div>
+    <h3>Inputs</h3>
+    <div>
+        Start date: <%= @analysis.start_date %>
     </div>
     <div>
-        <% 
-            new_average_coverage = (@full_dataset.sum { |row| row[:new_coverage] } / @full_dataset.count).round(2)
-            current_average_coverage = (@full_dataset.sum { |row| row[:coverage] } / @full_dataset.count).round(2)
-            new_coverage_delta = (new_average_coverage - current_average_coverage).round(2)
-         %>
-        New average daily coverage: <%= new_average_coverage %>% (<%= new_coverage_delta > 0 ? "+" : "" %><%= new_coverage_delta %>%)
+        End date: <%= @analysis.end_date %>
     </div>
     <div>
-        Current average daily coverage: <%= current_average_coverage %>%
+        Granularity: <%= @analysis.granularity %>
     </div>
-</div>
-<br/>
-<h1>Current vs New Coverage</h1>
-<%
-    chart_data = [
-        {
-            name: 'Current Coverage',
-            data: @full_dataset.map { |row| [row[:date].to_s, row[:coverage]] }
-        },
-        {
-            name: 'New Coverage',
-            data: @full_dataset.map { |row| [row[:date].to_s, row[:new_coverage]] }
-        }
-    ]
-%>
-<%= line_chart(chart_data) %>
-<br/>
- <h3>Breakdown</h3>
-<table>
-    <thead>
-        <th>Day</th>
-        <th>OD post-EDP discount</th>
-        <th>Savings Plans</th>
-        <th>OD covered by CSP</th>
-        <th>Total OD Dollars</th>
-        <th>Coverage</th>
-        <th>OD pre-EDP discount</th>
-        <th>Total we spend today</th>
-        <th>CSP' (new commit)</th>
-        <th>CSP' in on demand dollars</th>
-        <th>OD pre-EDP, post apply CSP'</th>
-        <th>OD post-EDP, post CSP'</th>
-        <th>New Total</th>
-        <th>Savings</th>
-        <th>New Coverage</th>
-    </thead>
-    <tbody>
-        <% @full_dataset.each do |row| %>
-            <tr>
-                <td><%= "#{row[:date].to_s}" %></td>
-                <td><%= "#{number_to_currency(row[:on_demand_post_discount])}" %></td>
-                <td><%= "#{number_to_currency(row[:savings_plans])}" %></td>
-                <td><%= "#{number_to_currency(row[:on_demand_covered_by_csp])}" %></td>
-                <td><%= "#{number_to_currency(row[:total_on_demand_dollars])}" %></td>
-                <td><%= "#{row[:coverage]}%" %></td>
-                <td><%= "#{number_to_currency(row[:on_demand_pre_discount])}" %></td>
-                <td><%= "#{number_to_currency(row[:total_we_spend_today])}" %></td>
-                <td><%= "#{number_to_currency(row[:csp_prime])}" %></td>
-                <td><%= "#{number_to_currency(row[:csp_prime_in_on_demand])}" %></td>
-                <td><%= "#{number_to_currency(row[:on_demand_pre_edp_post_csp_prime])}" %></td>
-                <td><%= "#{number_to_currency(row[:on_demand_post_edp_post_csp_prime])}" %></td>
-                <td><%= "#{number_to_currency(row[:new_total])}" %></td>
-                <td><%= "#{number_to_currency(row[:savings])}" %></td>
-                <td><%= "#{row[:new_coverage]}%" %></td>
-            </tr>
-        <% end %>
-    </tbody>
-</table>
+    <div>
+        Enterprise cross-service discount: <%= @analysis.enterprise_cross_service_discount %>%
+    </div>
+    <div>
+        <h3>Summary</h3>
+        <div>
+            Optimal hourly commit: $<%= @analysis.optimal_hourly_commit.round(4) %>
+        </div>
+        <div>
+            New monthly savings: <%= number_to_currency(@full_dataset.sum { |row| row[:savings] } * 30.4 / @full_dataset.count) %>
+        </div>
+        <div>
+            <% 
+                new_average_coverage = (@full_dataset.sum { |row| row[:new_coverage] } / @full_dataset.count).round(2)
+                current_average_coverage = (@full_dataset.sum { |row| row[:coverage] } / @full_dataset.count).round(2)
+                new_coverage_delta = (new_average_coverage - current_average_coverage).round(2)
+            %>
+            New average daily coverage: <%= new_average_coverage %>% (<%= new_coverage_delta > 0 ? "+" : "" %><%= new_coverage_delta %>%)
+        </div>
+        <div>
+            Current average daily coverage: <%= current_average_coverage %>%
+        </div>
+    </div>
+    <br/>
+    <h1>Current vs New Coverage</h1>
+    <%
+        chart_data = [
+            {
+                name: 'Current Coverage',
+                data: @full_dataset.map { |row| [row[:date].to_s, row[:coverage]] }
+            },
+            {
+                name: 'New Coverage',
+                data: @full_dataset.map { |row| [row[:date].to_s, row[:new_coverage]] }
+            }
+        ]
+    %>
+    <%= line_chart(chart_data) %>
+    <br/>
+    <h3>Breakdown</h3>
+    <table>
+        <thead>
+            <th>Day</th>
+            <th>OD post-EDP discount</th>
+            <th>Savings Plans</th>
+            <th>OD covered by CSP</th>
+            <th>Total OD Dollars</th>
+            <th>Coverage</th>
+            <th>OD pre-EDP discount</th>
+            <th>Total we spend today</th>
+            <th>CSP' (new commit)</th>
+            <th>CSP' in on demand dollars</th>
+            <th>OD pre-EDP, post apply CSP'</th>
+            <th>OD post-EDP, post CSP'</th>
+            <th>New Total</th>
+            <th>Savings</th>
+            <th>New Coverage</th>
+        </thead>
+        <tbody>
+            <% @full_dataset.each do |row| %>
+                <tr>
+                    <td><%= "#{row[:date].to_s}" %></td>
+                    <td><%= "#{number_to_currency(row[:on_demand_post_discount])}" %></td>
+                    <td><%= "#{number_to_currency(row[:savings_plans])}" %></td>
+                    <td><%= "#{number_to_currency(row[:on_demand_covered_by_csp])}" %></td>
+                    <td><%= "#{number_to_currency(row[:total_on_demand_dollars])}" %></td>
+                    <td><%= "#{row[:coverage]}%" %></td>
+                    <td><%= "#{number_to_currency(row[:on_demand_pre_discount])}" %></td>
+                    <td><%= "#{number_to_currency(row[:total_we_spend_today])}" %></td>
+                    <td><%= "#{number_to_currency(row[:csp_prime])}" %></td>
+                    <td><%= "#{number_to_currency(row[:csp_prime_in_on_demand])}" %></td>
+                    <td><%= "#{number_to_currency(row[:on_demand_pre_edp_post_csp_prime])}" %></td>
+                    <td><%= "#{number_to_currency(row[:on_demand_post_edp_post_csp_prime])}" %></td>
+                    <td><%= "#{number_to_currency(row[:new_total])}" %></td>
+                    <td><%= "#{number_to_currency(row[:savings])}" %></td>
+                    <td><%= "#{row[:new_coverage]}%" %></td>
+                </tr>
+            <% end %>
+        </tbody>
+    </table>
 
 
 
-<div>
-    <%= link_to "Back to Analyses", account_analyses_path(@account) %>
-</div>
+    <div>
+        <%= link_to "Back to Analyses", account_analyses_path(@account) %>
+    </div>
+</section>

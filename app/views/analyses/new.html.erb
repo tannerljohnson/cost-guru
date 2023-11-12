@@ -1,32 +1,34 @@
-<h1>New analysis</h1>
-<p>Input fields here.</p>
-<%= form_for [@account, @analysis] do |f| %>
-    <div class="field">
-        <%= f.label :start_date %>
-        <%= f.date_field :start_date %>
-    </div>
+<section class="container">
+    <h1>New analysis</h1>
+    <p>Input fields here.</p>
+    <%= form_for [@account, @analysis] do |f| %>
+        <div class="field">
+            <%= f.label :start_date %>
+            <%= f.date_field :start_date %>
+        </div>
 
-    <div class="field">
-        <%= f.label :end_date %>
-        <%= f.date_field :end_date %>
-    </div>
+        <div class="field">
+            <%= f.label :end_date %>
+            <%= f.date_field :end_date %>
+        </div>
 
-    <div class="field">
-        <%= f.label :granularity %>
-        <%= f.select :granularity, options_for_select(Analysis::GRANULARITY_OPTIONS) %>
-    </div>
+        <div class="field">
+            <%= f.label :granularity %>
+            <%= f.select :granularity, options_for_select(Analysis::GRANULARITY_OPTIONS) %>
+        </div>
 
-    <div class="field">
-        <%= f.label :enterprise_cross_service_discount_percentage %>
-        <%= f.number_field :enterprise_cross_service_discount %>
-    </div>
-   
+        <div class="field">
+            <%= f.label :enterprise_cross_service_discount_percentage %>
+            <%= f.number_field :enterprise_cross_service_discount %>
+        </div>
+    
+        <div>
+            <%= f.submit %>
+        </div>
+    <% end %>
+
+
     <div>
-        <%= f.submit %>
+        <%= link_to "Back to Analyses", account_analyses_path(@account) %>
     </div>
-<% end %>
-
-
-<div>
-    <%= link_to "Back to Analyses", account_analyses_path(@account) %>
-</div>
+</section>

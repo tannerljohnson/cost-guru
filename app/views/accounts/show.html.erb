@@ -1,41 +1,43 @@
-<h1><%= @account.name %> Account Overview</h1>
-<div>
-    <% if @account.is_connected? %>
-        ✅ Connected
-    <% else %>
-        ❌ Not connected
-    <% end %>
-</div>
-<h2>Cost Overview</h2>
-<%
-    chart_data = [
-        {
-            name: 'Actuals',
-            data: @cost_summary[:this_month_current_by_day]
-        },
-        {
-            name: 'Forecast',
-            data: @cost_summary[:this_month_forecast_by_day]
-        }
-    ]
-    current_monthly_total = @cost_summary[:this_month_current_by_day].sum { |data| data[1] }
-    expected_month_end_total = current_monthly_total + @cost_summary[:this_month_forecast_by_day].sum { |data| data[1] }
-%>
-<%= column_chart(chart_data) %>
+<section class="container">
+    <h1><%= @account.name %> Account Overview</h1>
+    <div>
+        <% if @account.is_connected? %>
+            ✅ Connected
+        <% else %>
+            ❌ Not connected
+        <% end %>
+    </div>
+    <h2>Cost Overview</h2>
+    <%
+        chart_data = [
+            {
+                name: 'Actuals',
+                data: @cost_summary[:this_month_current_by_day]
+            },
+            {
+                name: 'Forecast',
+                data: @cost_summary[:this_month_forecast_by_day]
+            }
+        ]
+        current_monthly_total = @cost_summary[:this_month_current_by_day].sum { |data| data[1] }
+        expected_month_end_total = current_monthly_total + @cost_summary[:this_month_forecast_by_day].sum { |data| data[1] }
+    %>
+    <%= column_chart(chart_data) %>
 
-<div>
-    Current spend this month: <%= number_to_currency(current_monthly_total) %>
-</div>
-<div>
-    Expected month-end costs: <%= number_to_currency(expected_month_end_total) %>
-</div>
-<div>
-    How far are we through the month? <%= TimeHelpers.percentage_of_month_passed %>%
-</div>
-<br/>
-<div>
-    <%= link_to "CSP Analyses for #{@account.name}", account_analyses_path(@account) %>
-</div>
-<div>
-    <%= link_to "Back to Accounts", accounts_path %>
-</div>
+    <div>
+        Current spend this month: <%= number_to_currency(current_monthly_total) %>
+    </div>
+    <div>
+        Expected month-end costs: <%= number_to_currency(expected_month_end_total) %>
+    </div>
+    <div>
+        How far are we through the month? <%= TimeHelpers.percentage_of_month_passed %>%
+    </div>
+    <br/>
+    <div>
+        <%= link_to "CSP Analyses for #{@account.name}", account_analyses_path(@account) %>
+    </div>
+    <div>
+        <%= link_to "Back to Accounts", accounts_path %>
+    </div>
+</section>

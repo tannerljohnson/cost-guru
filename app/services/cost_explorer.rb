@@ -68,7 +68,7 @@ class CostExplorer
         cost_summary = response.results_by_time.map do |result| 
             [
                 result.time_period.start,
-                result.total['AmortizedCost'].amount.to_f 
+                result.total['AmortizedCost'].amount.to_f.round(2)
             ]   
         end
         return cost_summary
@@ -94,7 +94,7 @@ class CostExplorer
         response.forecast_results_by_time.map do |result| 
             [
                 result.time_period.start, 
-                result.mean_value.to_f 
+                result.mean_value.to_f.round(2)
             ] 
         end
     end
