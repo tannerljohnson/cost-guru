@@ -13,6 +13,9 @@
     End date: <%= @analysis.end_date %>
 </div>
 <div>
+    Granularity: <%= @analysis.granularity %>
+</div>
+<div>
     Enterprise cross-service discount: <%= @analysis.enterprise_cross_service_discount %>%
 </div>
 <div>
@@ -35,6 +38,21 @@
         Current average daily coverage: <%= current_average_coverage %>%
     </div>
 </div>
+<br/>
+<h1>Current vs New Coverage</h1>
+<%
+    chart_data = [
+        {
+            name: 'Current Coverage',
+            data: @full_dataset.map { |row| [row[:date].to_s, row[:coverage]] }
+        },
+        {
+            name: 'New Coverage',
+            data: @full_dataset.map { |row| [row[:date].to_s, row[:new_coverage]] }
+        }
+    ]
+%>
+<%= line_chart(chart_data) %>
 <br/>
  <h3>Breakdown</h3>
 <table>
@@ -77,6 +95,8 @@
         <% end %>
     </tbody>
 </table>
+
+
 
 <div>
     <%= link_to "Back to Analyses", account_analyses_path(@account) %>

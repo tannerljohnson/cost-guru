@@ -35,6 +35,10 @@ gem 'omniauth-google-oauth2'
 gem 'omniauth-rails_csrf_protection'
 gem 'annotate'
 
+gem 'chartkick'
+# gem 'chartjs-ror' # or 'googlecharts' for Google Charts
+
+
 gem 'aws-sdk'
 # Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
 # gem "kredis"

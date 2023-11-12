@@ -20,7 +20,8 @@ class AnalysesController < ApplicationController
       account: @account, 
       start_date: @analysis.start_date, 
       end_date: @analysis.end_date, 
-      enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount
+      enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount,
+      granularity: @analysis.granularity
     )
     @analysis.optimal_hourly_commit = @optimal_csp_prime
     if @analysis.save
@@ -41,10 +42,18 @@ class AnalysesController < ApplicationController
     )
   end
 
+  def destroy
+    @analysis = @account.analyses.find { |a| a.id === params[:id] }
+    @analysis.destroy
+    flash[:notice] = "Successfully deleted!"
+
+    redirect_to account_analyses_path(@account)
+  end
+
   private 
 
   def analysis_params
-    params.require(:analysis).permit(:start_date, :end_date, :enterprise_cross_service_discount)
+    params.require(:analysis).permit(:start_date, :end_date, :enterprise_cross_service_discount, :granularity)
   end
 
   def load_account!

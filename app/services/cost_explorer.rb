@@ -13,29 +13,42 @@ class CostExplorer
         new(account: account, start_date: start_date, end_date: end_date, enterprise_cross_service_discount: enterprise_cross_service_discount).get_full_dataset(csp_prime)
     end
 
-    def self.compute_optimal_csp_prime(account:, start_date:, end_date:, enterprise_cross_service_discount:)
-        new(account: account, start_date: start_date, end_date: end_date, enterprise_cross_service_discount: enterprise_cross_service_discount).compute_optimal_csp_prime
+    def self.compute_optimal_csp_prime(
+        account:, 
+        start_date:, 
+        end_date:, 
+        enterprise_cross_service_discount:,
+        granularity:
+    )
+        new(
+            account: account, 
+            start_date: start_date, 
+            end_date: end_date, 
+            enterprise_cross_service_discount: enterprise_cross_service_discount,
+            granularity: granularity
+        ).compute_optimal_csp_prime
     end
 
-    def initialize(account:, start_date: nil, end_date: nil, enterprise_cross_service_discount: nil)
+    def initialize(account:, start_date: nil, end_date: nil, enterprise_cross_service_discount: nil, granularity: nil)
         @account = account
         @start_date = start_date&.strftime('%Y-%m-%d') 
         @end_date = end_date&.strftime('%Y-%m-%d')
         @enterprise_cross_service_discount = enterprise_cross_service_discount
+        @granularity = granularity || 'daily'
         initialize_client
     end
     private_class_method :new
 
-    attr_reader :account, :client, :start_date, :end_date, :enterprise_cross_service_discount, :eligible_compute_cost_and_usage
+    attr_reader :account, :client, :start_date, :end_date, :enterprise_cross_service_discount, :granularity, :eligible_compute_cost_and_usage
 
     def get_cost_summary
         {
-            this_month_current: get_this_month_current,
-            this_month_forecast: get_this_month_forecast,
+            this_month_current_by_day: get_this_month_current_by_day,
+            this_month_forecast_by_day: get_this_month_forecast_by_day,
         }
     end
 
-    def get_this_month_current
+    def get_this_month_current_by_day
         today = Date.today
         start_of_month = today.beginning_of_month
         end_of_month = today.end_of_month
@@ -47,20 +60,25 @@ class CostExplorer
               start: start_date,
               end: end_date
             },
-            granularity: 'MONTHLY',
+            granularity: 'DAILY',
             metrics: ['AMORTIZED_COST']
           })
 
-        cost_summary = response.results_by_time[0].total['AmortizedCost'].amount.to_f
+        
+        cost_summary = response.results_by_time.map do |result| 
+            [
+                result.time_period.start,
+                result.total['AmortizedCost'].amount.to_f 
+            ]   
+        end
         return cost_summary
     end
 
-    def get_this_month_forecast
+    def get_this_month_forecast_by_day
         today = Date.today
-        tomorrow = today + 1
         end_of_month = today.end_of_month
 
-        start_date = tomorrow.strftime('%Y-%m-%d')
+        start_date = today.strftime('%Y-%m-%d')
         end_date = end_of_month.strftime('%Y-%m-%d')
 
         response = client.get_cost_forecast({
@@ -68,13 +86,17 @@ class CostExplorer
                 start: start_date,
                 end: end_date
             },
-            granularity: 'MONTHLY',
+            granularity: 'DAILY',
             metric: 'AMORTIZED_COST'
         })
     
-        # Extract and return the projected cost
-        projected_cost = response.total.amount.to_f
-        return projected_cost
+        
+        response.forecast_results_by_time.map do |result| 
+            [
+                result.time_period.start, 
+                result.mean_value.to_f 
+            ] 
+        end
     end
 
     def compute_optimal_csp_prime
@@ -103,8 +125,10 @@ class CostExplorer
         dataset.sum { |row| row[:savings] } * 30.4 / dataset.count
     end
 
-    def get_full_dataset(csp_prime)
-        csp_prime_in_on_demand = csp_prime / (1 - CSP_DISCOUNT_RATE)
+    def get_full_dataset(csp_prime_hourly)
+        # TODO: Support hourly granularity
+        csp_prime_daily = csp_prime_hourly * 24
+        csp_prime_in_on_demand = csp_prime_daily / (1 - CSP_DISCOUNT_RATE)
         on_demand_post_discount = eligible_compute_cost_and_usage
         savings_plans = get_compute_savings_plan_spending_by_day
         rows = (Date.parse(start_date)...Date.parse(end_date)).to_a.each_with_index.map do |date, i|
@@ -115,7 +139,7 @@ class CostExplorer
             total_we_spend_today_unit = on_demand_post_discount_unit + savings_plans_unit
             on_demand_pre_edp_post_csp_prime_unit = on_demand_pre_discount_unit - csp_prime_in_on_demand
             on_demand_post_edp_post_csp_prime_unit = [on_demand_pre_edp_post_csp_prime_unit * (1 - (enterprise_cross_service_discount / 100)), 0].max
-            new_total_unit = savings_plans_unit + csp_prime + on_demand_post_edp_post_csp_prime_unit
+            new_total_unit = savings_plans_unit + csp_prime_daily + on_demand_post_edp_post_csp_prime_unit
             {
                 date: date,
                 on_demand_post_discount: on_demand_post_discount_unit,
@@ -125,7 +149,7 @@ class CostExplorer
                 coverage: (100 * on_demand_covered_by_csp_unit / (on_demand_post_discount_unit + on_demand_covered_by_csp_unit)).round(2),
                 on_demand_pre_discount: on_demand_pre_discount_unit,
                 total_we_spend_today: total_we_spend_today_unit,
-                csp_prime: csp_prime,
+                csp_prime: csp_prime_daily,
                 csp_prime_in_on_demand: csp_prime_in_on_demand,
                 on_demand_pre_edp_post_csp_prime: on_demand_pre_edp_post_csp_prime_unit,
                 on_demand_post_edp_post_csp_prime: on_demand_post_edp_post_csp_prime_unit,

@@ -11,8 +11,13 @@
   </head>
 
   <body>
-       <p class="notice"><%= notice %></p>
-       <p class="alert"><%= alert %></p>
+      <div>
+        <% flash.each do |type, msg| %>
+          <div class="alert alert-<%= type == 'alert' ? 'danger' : 'primary' %>" role="alert">
+            <%= msg.html_safe if msg %>
+          </div>
+        <% end %>
+      </div>
         <div>
           <% if user_signed_in? %>
             <span class="text-secondary">

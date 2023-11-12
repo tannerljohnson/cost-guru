@@ -7,11 +7,27 @@
     <% end %>
 </div>
 <h2>Cost Overview</h2>
+<%
+    chart_data = [
+        {
+            name: 'Actuals',
+            data: @cost_summary[:this_month_current_by_day]
+        },
+        {
+            name: 'Forecast',
+            data: @cost_summary[:this_month_forecast_by_day]
+        }
+    ]
+    current_monthly_total = @cost_summary[:this_month_current_by_day].sum { |data| data[1] }
+    expected_month_end_total = current_monthly_total + @cost_summary[:this_month_forecast_by_day].sum { |data| data[1] }
+%>
+<%= column_chart(chart_data) %>
+
 <div>
-    Current spend this month: <%= number_to_currency(@cost_summary[:this_month_current]) %>
+    Current spend this month: <%= number_to_currency(current_monthly_total) %>
 </div>
 <div>
-    Expected month-end costs: <%= number_to_currency(@cost_summary[:this_month_forecast]) %>
+    Expected month-end costs: <%= number_to_currency(expected_month_end_total) %>
 </div>
 <div>
     How far are we through the month? <%= TimeHelpers.percentage_of_month_passed %>%

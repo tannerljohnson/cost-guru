@@ -3,12 +3,17 @@
 <%= form_for [@account, @analysis] do |f| %>
     <div class="field">
         <%= f.label :start_date %>
-        <%= f.datetime_local_field :start_date %>
+        <%= f.date_field :start_date %>
     </div>
 
     <div class="field">
         <%= f.label :end_date %>
-        <%= f.datetime_local_field :end_date %>
+        <%= f.date_field :end_date %>
+    </div>
+
+    <div class="field">
+        <%= f.label :granularity %>
+        <%= f.select :granularity, options_for_select(Analysis::GRANULARITY_OPTIONS) %>
     </div>
 
     <div class="field">

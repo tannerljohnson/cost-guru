@@ -10,6 +10,7 @@
       <th>Enterprise Discount</th>
       <th>Optimal Commit</th>
       <th></th>
+      <th></th>
     </tr>
   </thead>
   <tbody>
@@ -24,6 +25,9 @@
           <a href="<%= account_analysis_path(@account, analysis) %>">
             View
           </a>
+        </td>
+        <td>
+            <%= link_to "Delete", account_analysis_path(@account, analysis), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
         </td>
       </tr>
     <% end %>
