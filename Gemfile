@@ -34,6 +34,8 @@ gem 'omniauth'
 gem 'omniauth-google-oauth2'
 gem 'omniauth-rails_csrf_protection'
 gem 'annotate'
+gem "bootstrap"
+gem "sassc-rails"
 
 gem 'chartkick'
 # gem 'chartjs-ror' # or 'googlecharts' for Google Charts
