@@ -95,7 +95,7 @@
             }
         ]
     %>
-    <%= column_chart(chart_data) %>
+    <%= line_chart(chart_data) %>
     <br/>
 
     <h2>Here's the numbers breakdown</h3>
@@ -111,6 +111,8 @@
             <th scope="col">Total we spend today</th>
             <th scope="col">CSP' (new commit)</th>
             <th scope="col">CSP' in on demand dollars</th>
+            <th scope="col">CSP' + CSP in on demand dollars</th>
+
             <th scope="col">OD pre-EDP, post apply CSP'</th>
             <th scope="col">OD post-EDP, post CSP'</th>
             <th scope="col">New Total</th>
@@ -130,6 +132,7 @@
                     <td><%= "#{number_to_currency(row[:total_we_spend_today])}" %></td>
                     <td><%= "#{number_to_currency(row[:csp_prime])}" %></td>
                     <td><%= "#{number_to_currency(row[:csp_prime_in_on_demand])}" %></td>
+                    <td><%= "#{number_to_currency(row[:csp_prime_plus_csp_in_on_demand])}" %></td>
                     <td><%= "#{number_to_currency(row[:on_demand_pre_edp_post_csp_prime])}" %></td>
                     <td><%= "#{number_to_currency(row[:on_demand_post_edp_post_csp_prime])}" %></td>
                     <td><%= "#{number_to_currency(row[:new_total])}" %></td>

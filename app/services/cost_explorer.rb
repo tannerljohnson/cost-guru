@@ -1,5 +1,5 @@
 class CostExplorer
-    CSP_DISCOUNT_RATE = 0.51
+    CSP_DISCOUNT_RATE = 0.512
 
     def self.get_cost_summary(account:)
         new(account: account).get_cost_summary
@@ -10,32 +10,32 @@ class CostExplorer
     end
 
     def self.get_full_dataset(
-        account:, 
-        start_date:, 
-        end_date:, 
-        enterprise_cross_service_discount:, 
+        account:,
+        start_date:,
+        end_date:,
+        enterprise_cross_service_discount:,
         csp_prime:
     )
         new(
-            account: account, 
-            start_date: start_date, 
-            end_date: end_date, 
-            enterprise_cross_service_discount: 
+            account: account,
+            start_date: start_date,
+            end_date: end_date,
+            enterprise_cross_service_discount:
             enterprise_cross_service_discount
         ).get_full_dataset(csp_prime)
     end
 
     def self.compute_optimal_csp_prime(
-        account:, 
-        start_date:, 
-        end_date:, 
+        account:,
+        start_date:,
+        end_date:,
         enterprise_cross_service_discount:,
         granularity:
     )
         new(
-            account: account, 
-            start_date: start_date, 
-            end_date: end_date, 
+            account: account,
+            start_date: start_date,
+            end_date: end_date,
             enterprise_cross_service_discount: enterprise_cross_service_discount,
             granularity: granularity
         ).compute_optimal_csp_prime
@@ -43,7 +43,7 @@ class CostExplorer
 
     def initialize(account:, start_date: nil, end_date: nil, enterprise_cross_service_discount: nil, granularity: nil)
         @account = account
-        @start_date = start_date&.strftime('%Y-%m-%d') 
+        @start_date = start_date&.strftime('%Y-%m-%d')
         @end_date = end_date&.strftime('%Y-%m-%d')
         @enterprise_cross_service_discount = enterprise_cross_service_discount
         @granularity = granularity || 'daily'
@@ -72,15 +72,15 @@ class CostExplorer
               end: end_date
             },
             granularity: 'DAILY',
-            metrics: ['AMORTIZED_COST']
+            metrics: ['NetAmortizedCost']
           })
 
-        
-        cost_summary = response.results_by_time.map do |result| 
+
+        cost_summary = response.results_by_time.map do |result|
             [
                 result.time_period.start,
-                result.total['AmortizedCost'].amount.to_f.round(2)
-            ]   
+                result.total['NetAmortizedCost'].amount.to_f.round(2)
+            ]
         end
         return cost_summary
     end
@@ -88,7 +88,7 @@ class CostExplorer
     def get_this_month_current_by_day
         today = Date.today
         start_of_month = today.beginning_of_month
-        end_of_month = today.end_of_month
+        end_of_month = today.end_of_month + 1
 
         start_date = start_of_month.strftime('%Y-%m-%d')
         end_date = end_of_month.strftime('%Y-%m-%d')
@@ -98,22 +98,25 @@ class CostExplorer
               end: end_date
             },
             granularity: 'DAILY',
-            metrics: ['AMORTIZED_COST']
+            metrics: ['NetAmortizedCost']
           })
 
-        
-        cost_summary = response.results_by_time.map do |result| 
+
+        # filter out today till end of month. this will be covered by the forecast
+        cost_summary = response.results_by_time.filter do |res|
+            res.time_period.start < today.to_s
+        end.map do |result|
             [
                 result.time_period.start,
-                result.total['AmortizedCost'].amount.to_f.round(2)
-            ]   
+                result.total['NetAmortizedCost'].amount.to_f.round(2)
+            ]
         end
         return cost_summary
     end
 
     def get_this_month_forecast_by_day
         today = Date.today
-        end_of_month = today.end_of_month
+        end_of_month = today.end_of_month + 1
 
         start_date = today.strftime('%Y-%m-%d')
         end_date = end_of_month.strftime('%Y-%m-%d')
@@ -124,15 +127,15 @@ class CostExplorer
                 end: end_date
             },
             granularity: 'DAILY',
-            metric: 'AMORTIZED_COST'
+            metric: 'NET_AMORTIZED_COST'
         })
-    
-        
-        response.forecast_results_by_time.map do |result| 
+
+
+        response.forecast_results_by_time.map do |result|
             [
-                result.time_period.start, 
+                result.time_period.start,
                 result.mean_value.to_f.round(2)
-            ] 
+            ]
         end
     end
 
@@ -152,7 +155,7 @@ class CostExplorer
             mid2_savings = get_monthly_savings_for_dataset(get_full_dataset(mid2))
             data_points << [mid1, mid1_savings]
             data_points << [mid2, mid2_savings]
-        
+
             if mid1_savings > mid2_savings
               high = mid2
             else
@@ -192,6 +195,7 @@ class CostExplorer
             savings_plans_unit = savings_plans[i].to_f
             on_demand_covered_by_csp_unit = savings_plans_unit / (1 - CSP_DISCOUNT_RATE)
             on_demand_pre_discount_unit = on_demand_post_discount_unit / (1 - (enterprise_cross_service_discount / 100))
+            csp_prime_plus_csp_in_on_demand = savings_plans_unit + csp_prime_in_on_demand
             total_we_spend_today_unit = on_demand_post_discount_unit + savings_plans_unit
             on_demand_pre_edp_post_csp_prime_unit = on_demand_pre_discount_unit - csp_prime_in_on_demand
             on_demand_post_edp_post_csp_prime_unit = [on_demand_pre_edp_post_csp_prime_unit * (1 - (enterprise_cross_service_discount / 100)), 0].max
@@ -207,25 +211,40 @@ class CostExplorer
                 total_we_spend_today: total_we_spend_today_unit,
                 csp_prime: csp_prime_daily,
                 csp_prime_in_on_demand: csp_prime_in_on_demand,
+                csp_prime_plus_csp_in_on_demand: csp_prime_plus_csp_in_on_demand,
                 on_demand_pre_edp_post_csp_prime: on_demand_pre_edp_post_csp_prime_unit,
                 on_demand_post_edp_post_csp_prime: on_demand_post_edp_post_csp_prime_unit,
                 new_total: new_total_unit,
                 savings: total_we_spend_today_unit - new_total_unit,
-                new_coverage: (100 * csp_prime_in_on_demand / (csp_prime_in_on_demand + on_demand_post_edp_post_csp_prime_unit)).round(2)
+                new_coverage: (100 * csp_prime_plus_csp_in_on_demand / (csp_prime_plus_csp_in_on_demand + on_demand_post_edp_post_csp_prime_unit)).round(2)
             }
         end
         rows
     end
 
     def eligible_compute_cost_and_usage
+        # aws ce get-dimension-values --time-period Start=2022-01-01,End=2023-12-10 --dimension USAGE_TYPE --profile infrastructure-admin | jq '.DimensionValues | .[] | .Value'
         @eligible_compute_cost_and_usage ||= get_cost_and_usage(
             start_date: start_date,
             end_date: end_date,
             filter: {
                 and: [
                     { dimensions: { key: "PURCHASE_TYPE", values: ["On Demand Instances"] } },
-                    { dimensions: { key: "SERVICE", values: ["Amazon Elastic Compute Cloud - Compute", "AWS Lambda"] } },
-                    # { dimensions: { key: "USAGE_TYPE", exclude_values: ["AP-DataTransfer-Out-Bytes"] } }
+                    {
+                        dimensions: {
+                            key: "SERVICE",
+                            values: [
+                                "Amazon Elastic Compute Cloud - Compute",
+                                "AWS Lambda",
+                                "Amazon Elastic Container Service",
+                                "Amazon Elastic Container Service for Kubernetes",
+                                "Amazon SageMaker"
+                            ]
+                        }
+                    },
+                    # Temp solution. Figure out why we can't use wildcard
+                    { not: { dimensions: { key: "USAGE_TYPE", values: Constants::USAGE_TYPES[:TOP_DATA_TRANSFER] } } }
+                    # { not: { dimensions: { key: "USAGE_TYPE", values: ["*Bytes*"] } } }
                   ]
             },
             granularity: 'DAILY',
@@ -235,7 +254,7 @@ class CostExplorer
 
     def get_compute_savings_plans_inventory
         return []
-        
+
         # Specify the time period for which you want to retrieve the inventory
         start_date = (Date.today - 30).strftime('%Y-%m-%d') # Replace with your desired start date
         end_date = Date.today.strftime('%Y-%m-%d')
@@ -256,27 +275,6 @@ class CostExplorer
     end
 
     def get_compute_savings_plan_spending_by_day
-        # Temporary - delete me
-        fake_data = (Date.parse(start_date)..Date.parse(end_date)).to_a.map do |date|
-            {
-                time_period: {
-                    start: date.to_s,
-                    end:  (date + 1).to_s
-                },
-                total: {
-                    "NetAmortizedCost": {
-                        amount: "10.0000000",
-                        unit: "USD"
-                    }
-                },
-                groups: [],
-                estimated: true
-            }
-        end
-        return fake_data.map do |result|
-            result[:total][:NetAmortizedCost][:amount]
-        end
-
         # Make the API call to get Compute Savings Plan utilization
         response = client.get_savings_plans_utilization({
             time_period: {
@@ -287,8 +285,15 @@ class CostExplorer
         })
 
         # Extract and return the spending data
-        spending_data = response.savings_plans_utilizations_by_time
+        spending_data = response.savings_plans_utilizations_by_time.map do |data|
+            apply_enterprise_discount(data.utilization.total_commitment.to_f)
+        end
+
         return spending_data
+    end
+
+    def apply_enterprise_discount(amount)
+        amount * (1 - (enterprise_cross_service_discount / 100))
     end
 
     def get_cost_and_usage(start_date:, end_date:, filter: nil, granularity: 'DAILY', metrics: 'NetAmortizedCost')
@@ -307,18 +312,17 @@ class CostExplorer
         return unless account.is_connected?
 
         Aws.config.update({ region: 'us-west-2' })
-        
+
         # Prefer cross account role connector
         if account.cross_account_role_connected?
-            # TODO: Replace this with a real thing
             cost_guru_aws_account_credentials = Aws::Credentials.new(
-                Rails.application.credentials.root_aws_account.sts_assume_role_user.iam_access_key_id, 
+                Rails.application.credentials.root_aws_account.sts_assume_role_user.iam_access_key_id,
                 Rails.application.credentials.root_aws_account.sts_assume_role_user.iam_secret_access_key
             )
             sts_client = Aws::STS::Client.new(credentials: cost_guru_aws_account_credentials)
             response = sts_client.assume_role({
                 role_arn: account.role_arn,
-                role_session_name: "STSSession#{account.name}#{Time.now.to_i}",
+                role_session_name: "STSSession#{account.name.gsub(/\s+/, '')}#{Time.now.to_i}",
             })
             # Use the temporary credentials obtained from the response to make AWS Cost Explorer API requests
             credentials = Aws::Credentials.new(response.credentials.access_key_id, response.credentials.secret_access_key, response.credentials.session_token)
@@ -327,8 +331,8 @@ class CostExplorer
         else
             raise "Unknown connection"
         end
-        
-        
+
+
         @client = Aws::CostExplorer::Client.new(credentials: credentials)
     end
 end
