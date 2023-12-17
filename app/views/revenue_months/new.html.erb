@@ -1,0 +1,24 @@
+<section class="container">
+    <h1>New Revenue Entry</h1>
+    <p>Input fields here.</p>
+    <%= form_for [@account, @revenue_month] do |f| %>
+        <div class="field">
+            <%= f.label :start_date %>
+            <%= f.date_field :start_date %>
+        </div>
+
+        <div class="field">
+            <%= f.label :revenue %>
+            <%= f.number_field :revenue, step: '0.01' %>
+        </div>
+    
+        <div>
+            <%= f.submit %>
+        </div>
+    <% end %>
+
+
+    <div>
+        <%= link_to "Back to Revenue", account_revenue_months_path(@account) %>
+    </div>
+</section>

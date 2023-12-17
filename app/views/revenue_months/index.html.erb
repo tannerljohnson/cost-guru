@@ -1,0 +1,46 @@
+<section class="container">
+    <% 
+        chart_data = [
+            {
+                name: 'Revenue',
+                data: @revenue_months.map do |revenue_month| 
+                    [revenue_month.start_date.to_s.to_date, revenue_month.revenue] 
+                end.sort { |a, b| a[0] <=> b[0] }
+            }
+        ]
+    %>
+    <h1>Revenue for <%= @account.name %></h1>
+    <div class="row">
+        <div class="col">
+            <%= line_chart(chart_data, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Start Date</th>
+                <th>Revenue</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <% @revenue_months.each do |revenue_month| %>
+                <tr>
+                    <td><%= revenue_month.start_date.to_s.to_date %></td>
+                    <td><%= number_to_currency(revenue_month.revenue) %></td>
+                    <td>
+                        <%= link_to "Delete", account_revenue_month_path(@account, revenue_month), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
+                    </td>
+                </tr>
+            <% end %>
+        </tbody>
+    </table>
+
+    <div>
+        <%= link_to "New Entry", new_account_revenue_month_path %>
+    </div>
+    <div>
+        <%= link_to "Back to Account", account_path(@account) %>
+    </div>
+</section>

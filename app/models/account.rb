@@ -14,6 +14,7 @@
 class Account < ApplicationRecord
     belongs_to :user
     has_many :analyses, dependent: :destroy
+    has_many :revenue_months, dependent: :destroy
 
     default_scope { order(created_at: :desc) }
 
@@ -33,7 +34,7 @@ class Account < ApplicationRecord
 
     def connection_strategy
         if cross_account_role_connected?
-            "cross_account_iam_role" 
+            "cross_account_iam_role"
         elsif iam_connected?
             "iam_credentials"
         end

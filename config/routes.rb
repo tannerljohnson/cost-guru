@@ -14,6 +14,7 @@ Rails.application.routes.draw do
 
   resources :accounts do
     resources :analyses
+    resources :revenue_months, except: [:show]
   end
 
   # resources :analyses

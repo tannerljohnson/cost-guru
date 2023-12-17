@@ -11,6 +11,7 @@
 #  end_date                          :datetime
 #  optimal_hourly_commit             :float
 #  granularity                       :string           default("daily"), not null
+#  chart_data                        :jsonb            not null
 #
 
 # This model initially had no columns defined. If you add columns to the

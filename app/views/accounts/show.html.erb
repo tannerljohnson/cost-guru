@@ -1,47 +1,143 @@
+<%
+    chart_data = [
+        {
+            name: 'Actuals',
+            data: @cost_summary[:this_month_current_by_day]
+        },
+        {
+            name: 'Forecast',
+            data: @cost_summary[:this_month_forecast_by_day]
+        }
+    ]
+    current_monthly_total = @cost_summary[:this_month_current_by_day].sum { |data| data[1] }
+    expected_month_end_total = current_monthly_total + @cost_summary[:this_month_forecast_by_day].sum { |data| data[1] }
+    current_month_current_services_to_ignore_total = @cost_summary[:this_month_current_services_to_ignore].sum do |group|
+        group[:data].sum { |data| data[1] }
+    end
+%>
 <section class="container">
-    <h1><%= @account.name %> Overview</h1>
-    <div>
-        <% if @account.is_connected? %>
-            ✅ Connected with <%= @account.connection_strategy.gsub("_", " ") %>
-        <% else %>
-            ❌ Not connected
-        <% end %>
+    <div class="row">
+        <div class="col">
+            <h1 class="display-1"><%= @account.name %> Dashboard</h1>
+            <div class="text-secondary">
+                <% if @account.is_connected? %>
+                    </i><i class="fa-solid fa-check" style="color: green;"></i> Connected with <%= @account.connection_strategy.gsub("_", " ") %>
+                <% else %>
+                    <i class="fa-solid fa-xmark" style="color: red;"> Not connected
+                <% end %>
+            </div>
+        </div>
     </div>
-    <h2>Core Usage</h2>
-    <%
-        chart_data = [
-            {
-                name: 'Actuals',
-                data: @cost_summary[:this_month_current_by_day]
-            },
-            {
-                name: 'Forecast',
-                data: @cost_summary[:this_month_forecast_by_day]
-            }
-        ]
-        current_monthly_total = @cost_summary[:this_month_current_by_day].sum { |data| data[1] }
-        expected_month_end_total = current_monthly_total + @cost_summary[:this_month_forecast_by_day].sum { |data| data[1] }
-        current_month_current_services_to_ignore_total = @cost_summary[:this_month_current_services_to_ignore].sum do |group|
-            group[:data].sum { |data| data[1] }
-        end
-    %>
-    <%= column_chart(chart_data, stacked: true) %>
+    
+    <div class="row mt-4">
+        <div class="col">
+            <div class="row text-center">
+                <div class="col">
+                    <h4>Current Month</h4>
+                </div>
+            </div>
+            <h5>Core Usage</h5>
+            <div class="row my-4">
+                <div class="col">
+                    <%= column_chart(chart_data, stacked: true, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+                </div>
+            </div>
+        
+            <div>
+                <b>Month-to-Date:</b> <%= number_to_currency(current_monthly_total) %>
+            </div>    
+            <div class="mb-4">
+                <b>Forecast:</b> <%= number_to_currency(expected_month_end_total) %>
+            </div>
+        
+            <h5>Non-Core Usage</h5>
+            <div class="row my-4">
+                <div class="col">
+                    <%= column_chart(@cost_summary[:this_month_current_services_to_ignore], stacked: true, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+                </div>
+            </div>
+            <div class="mb-4">
+                <b>Month-to-Date:</b> <%= number_to_currency(current_month_current_services_to_ignore_total) %>
+            </div>
+        </div>
+        <div class="col">
+            <div class="row text-center">
+                <div class="col">
+                    <h4>Compute Savings Plans</h4>
+                </div>
+            </div>
+            
+            <h5>Coverage</h5>
+            <div class="row my-4">
+                <div class="col">
+                    Chart
+                </div>
+            </div>
 
-    <div>
-        Current spend this month (minus excluded services): <%= number_to_currency(current_monthly_total) %>
+            <h5>Utilization</h5>
+            <div class="row my-4">
+                <div class="col">
+                    Chart
+                </div>
+            </div>
+        </div>
     </div>
-    <div>
-        Expected month-end spend (minus excluded services): <%= number_to_currency(expected_month_end_total) %>
+    <div class="row">
+        <div class="col">
+            <div class="row text-center">
+                <div class="col">
+                    <h4>Historical</h4>
+                </div>
+            </div>
+            <h5>Core Usage</h5>
+            <div class="row my-4">
+                <div class="col">
+                    insert chart
+                </div>
+            </div>
+        
+            <div class="mb-4">
+                <b>Total:</b> $$$
+            </div>
+
+            <h5>Non-Core Usage</h5>
+            <div class="row my-4">
+                <div class="col">
+                    insert chart
+                </div>
+            </div>
+            <div class="mb-4">
+                <b>Total:</b> $$$
+            </div>
+        </div>
+        <div class="col">
+            <div class="row text-center">
+                <div class="col">
+                    <h4>Reserved Instances</h4>
+                </div>
+            </div>
+            <h5>Coverage</h5>
+            <div class="row my-4">
+                <div class="col">
+                    Chart
+                </div>
+            </div>
+
+            <h5>Utilization</h5>
+            <div class="row my-4">
+                <div class="col">
+                    Chart
+                </div>
+            </div>
+        </div>
     </div>
 
-    <h3>Excluded Services</h3>
-    <%= column_chart(@cost_summary[:this_month_current_services_to_ignore], stacked: true) %>
-    <div>
-        Excluded services month to date: <%= number_to_currency(current_month_current_services_to_ignore_total) %>
-    </div>
     <br/>
     <div>
         <%= link_to "CSP Analyses for #{@account.name}", account_analyses_path(@account) %>
+    </div>
+    <div>
+        <%= link_to "Revenue for #{@account.name}", account_revenue_months_path(@account) %>
     </div>
     <div>
         <%= link_to "Back to Accounts", accounts_path %>
