@@ -301,25 +301,22 @@ class CostExplorer
     end
 
     def get_compute_savings_plans_inventory
-        return []
-
-        # Specify the time period for which you want to retrieve the inventory
-        start_date = (Date.today - 30).strftime('%Y-%m-%d') # Replace with your desired start date
-        end_date = Date.today.strftime('%Y-%m-%d')
-
-        # Make the API call to get Compute Savings Plan inventory
-        response = client.get_savings_plans_utilization({
-            time_period: {
-                start: start_date,
-                end: end_date
-            },
-            granularity: 'MONTHLY'
-            # You can add more parameters as needed
-        })
-
-        # Extract and return the inventory information
-        inventory_data = response.savings_plans_utilizations_by_time
-        return inventory_data
+        # TODO: Add describe*, other read for savingsplan*, elasticache, rds in notion labs
+        # Also might need it for other stuff
+        # Need to instantiate a client for each
+        # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/ElastiCache/Client.html#describe_reserved_cache_nodes-instance_method
+        # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SavingsPlans/Client.html#describe_savings_plans-instance_method
+        # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/RDS/Client.html#describe_reserved_db_instances-instance_method
+        response = savings_plans_client.describe_savings_plans
+        response.map do |savings_plan|
+            {
+                id: savings_plan.savings_plan_id,
+                type: savings_plan.savings_plan_type,
+                commitment: savings_plan.commitment.amount,
+                start_date: savings_plan.start,
+                end_date: savings_plan.end,
+            }
+        end
     end
 
     def get_compute_savings_plan_spending_by_day
@@ -356,31 +353,44 @@ class CostExplorer
         )
     end
 
-    def initialize_client
+    def savings_plans_client
         return unless account.is_connected?
-
         Aws.config.update({ region: 'us-west-2' })
 
+        @savings_plans_client ||= Aws::SavingsPlans::Client.new(credentials: get_iam_credentials)
+    end
+
+    def initialize_client
+        return unless account.is_connected?
+        Aws.config.update({ region: 'us-west-2' })
+
+        @client = Aws::CostExplorer::Client.new(credentials: get_iam_credentials)
+    end
+
+    def get_iam_credentials
         # Prefer cross account role connector
         if account.cross_account_role_connected?
-            cost_guru_aws_account_credentials = Aws::Credentials.new(
-                Rails.application.credentials.root_aws_account.sts_assume_role_user.iam_access_key_id,
-                Rails.application.credentials.root_aws_account.sts_assume_role_user.iam_secret_access_key
-            )
-            sts_client = Aws::STS::Client.new(credentials: cost_guru_aws_account_credentials)
-            response = sts_client.assume_role({
-                role_arn: account.role_arn,
-                role_session_name: "STSSession#{account.name.gsub(/\s+/, '')}#{Time.now.to_i}",
-            })
-            # Use the temporary credentials obtained from the response to make AWS Cost Explorer API requests
-            credentials = Aws::Credentials.new(response.credentials.access_key_id, response.credentials.secret_access_key, response.credentials.session_token)
+            credentials = get_temporary_credentials
         elsif account.iam_connected?
             credentials = Aws::Credentials.new(account.iam_access_key_id, account.iam_secret_access_key)
         else
             raise "Unknown connection"
         end
 
+        credentials
+    end
 
-        @client = Aws::CostExplorer::Client.new(credentials: credentials)
+    def get_temporary_credentials
+        cost_guru_aws_account_credentials = Aws::Credentials.new(
+            Rails.application.credentials.root_aws_account.sts_assume_role_user.iam_access_key_id,
+            Rails.application.credentials.root_aws_account.sts_assume_role_user.iam_secret_access_key
+        )
+        sts_client = Aws::STS::Client.new(credentials: cost_guru_aws_account_credentials)
+        response = sts_client.assume_role({
+            role_arn: account.role_arn,
+            role_session_name: "STSSession#{account.name.gsub(/\s+/, '')}#{Time.now.to_i}",
+        })
+        # Use the temporary credentials obtained from the response to make AWS Cost Explorer API requests
+        Aws::Credentials.new(response.credentials.access_key_id, response.credentials.secret_access_key, response.credentials.session_token)
     end
 end
