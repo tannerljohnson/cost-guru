@@ -1,5 +1,5 @@
 <section class="container">
-    <h1><%= @account.name %> Account Overview</h1>
+    <h1><%= @account.name %> Overview</h1>
     <div>
         <% if @account.is_connected? %>
             ✅ Connected with <%= @account.connection_strategy.gsub("_", " ") %>
@@ -7,7 +7,7 @@
             ❌ Not connected
         <% end %>
     </div>
-    <h2>Cost Overview</h2>
+    <h2>Core Usage</h2>
     <%
         chart_data = [
             {
@@ -21,17 +21,23 @@
         ]
         current_monthly_total = @cost_summary[:this_month_current_by_day].sum { |data| data[1] }
         expected_month_end_total = current_monthly_total + @cost_summary[:this_month_forecast_by_day].sum { |data| data[1] }
+        current_month_current_services_to_ignore_total = @cost_summary[:this_month_current_services_to_ignore].sum do |group|
+            group[:data].sum { |data| data[1] }
+        end
     %>
-    <%= column_chart(chart_data) %>
+    <%= column_chart(chart_data, stacked: true) %>
 
     <div>
-        Current spend this month: <%= number_to_currency(current_monthly_total) %>
+        Current spend this month (minus excluded services): <%= number_to_currency(current_monthly_total) %>
     </div>
     <div>
-        Expected month-end costs: <%= number_to_currency(expected_month_end_total) %>
+        Expected month-end spend (minus excluded services): <%= number_to_currency(expected_month_end_total) %>
     </div>
+
+    <h3>Excluded Services</h3>
+    <%= column_chart(@cost_summary[:this_month_current_services_to_ignore], stacked: true) %>
     <div>
-        How far are we through the month? <%= TimeHelpers.percentage_of_month_passed %>%
+        Excluded services month to date: <%= number_to_currency(current_month_current_services_to_ignore_total) %>
     </div>
     <br/>
     <div>

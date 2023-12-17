@@ -57,6 +57,7 @@ class CostExplorer
         {
             this_month_current_by_day: get_this_month_current_by_day,
             this_month_forecast_by_day: get_this_month_forecast_by_day,
+            this_month_current_services_to_ignore: get_this_month_current_ignored_services,
             last_ninety_days: get_last_ninety_days
         }
     end
@@ -87,7 +88,7 @@ class CostExplorer
         return cost_summary
     end
 
-    def get_this_month_current_by_day
+    def get_this_month_current_by_day(filter: Constants::SERVICES_TO_IGNORE_FILTER, group_by: nil)
         today = Date.today
         start_of_month = today.beginning_of_month
         end_of_month = today.end_of_month + 1
@@ -99,7 +100,9 @@ class CostExplorer
               start: start_date,
               end: end_date
             },
+            filter: filter,
             granularity: 'DAILY',
+            group_by: group_by,
             metrics: ['NetAmortizedCost']
           })
 
@@ -116,6 +119,66 @@ class CostExplorer
         return cost_summary
     end
 
+    def get_this_month_current_ignored_services
+        today = Date.today
+        start_of_month = today.beginning_of_month
+        end_of_month = today.end_of_month + 1
+
+        start_date = start_of_month.strftime('%Y-%m-%d')
+        end_date = end_of_month.strftime('%Y-%m-%d')
+        response = client.get_cost_and_usage({
+            time_period: {
+              start: start_date,
+              end: end_date
+            },
+            filter: {
+                dimensions: {
+                    key: "SERVICE", values: Constants::SERVICES_TO_IGNORE
+                }
+            },
+            granularity: 'DAILY',
+            group_by: [
+                {
+                  type: 'DIMENSION',
+                  key: 'SERVICE'
+                }
+            ],
+            metrics: ['NetAmortizedCost']
+          })
+
+        # [
+        #   {name: "confluent", data: ['2023-12-02', 109800.20]},
+        #   {name: "cohere", data: ['2023-12-02', 109800.20]}
+        # ]
+
+        # {
+        #     "cohere stuff": [],
+        #     "confluent stuff": [],
+        # }
+
+        results_hash = {}
+        response.results_by_time.filter do |res|
+            res.time_period.start < today.to_s
+        end.each do |grouped_day|
+            date = grouped_day.time_period.start
+            grouped_day.groups.each do |group|
+                key = group.keys.first
+                unless results_hash.keys.include?(key)
+                    results_hash[key] = []
+                end
+                results_hash[key] << [date, group.metrics['NetAmortizedCost'].amount.to_f.round(2)]
+            end
+        end
+
+        chart_data = results_hash.map do |key, data|
+            {
+                name: key,
+                data: data
+            }
+        end
+        chart_data
+    end
+
     def get_this_month_forecast_by_day
         today = Date.today
         end_of_month = today.end_of_month + 1
@@ -128,6 +191,7 @@ class CostExplorer
                 start: start_date,
                 end: end_date
             },
+            filter: Constants::SERVICES_TO_IGNORE_FILTER,
             granularity: 'DAILY',
             metric: 'NET_AMORTIZED_COST'
         })
