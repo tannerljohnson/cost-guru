@@ -1,5 +1,6 @@
 <section class="container">
-    <h1>Recommendations for new compute savings plan to optimize savings</h1>
+    <h1>Recommendations</h1>
+    <div>New compute savings plan to optimize savings</div>
 
     <div class="container">
         <div class="row align-items-start">
@@ -45,13 +46,30 @@
     </div>
 
     <br/>
-    <h2>We searched all possible commitment values to optimize savings</h2>
-    <%= line_chart(@optimize_commit_results[:data]) %>
+    <h2>Optimal Commitment</h2>
+    <div>We searched all possible commitment values to optimize savings</div>
+    <%= line_chart(@analysis.chart_data) %>
     <br/>
-    <h2>Here's the last 3 months of spend for reference</h2>
-    <%= line_chart(@last_ninety_days) %>
+    <h2>Eligible On-Demand</h2>
+    <div>Here's the last 3 months of compute-eligible on-demand spend for reference</div>
+    <%
+        last_ninety_total_excluding_analysis_period = @last_ninety_days.filter { |res| !(res[0] >= @analysis.start_date && res[0] <= @analysis.end_date)  }
+        cost_for_analysis_period = @last_ninety_days.filter { |res| res[0] >= @analysis.start_date && res[0] <= @analysis.end_date }
+        ninety_day_lookback_chart_data = [
+            {
+                name: 'Last 90 days',
+                data: last_ninety_total_excluding_analysis_period
+            },
+            {
+                name: 'Analysis period',
+                data: cost_for_analysis_period
+            }
+        ]
+    %>
+    <%= line_chart(ninety_day_lookback_chart_data) %>
     <br/>
-    <h2>If your spend remains the same as the sample period, here is the current vs new spend</h2>
+    <h2>Total Spend</h2>
+    <div>If your spend remains the same as the sample period, here is the current vs new spend</div>
     <%
         spend_delta_chart_data = [
             {
@@ -82,7 +100,8 @@
     %>
     <%= line_chart(spend_delta_chart_data) %>
     <br/>
-    <h2>And this is how the coverage would change</h2>
+    <h2>Coverage %</h2>
+    <div>This is how the coverage would change</div>
     <%
         chart_data = [
             {

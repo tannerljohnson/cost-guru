@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2023_11_12_205335) do
+ActiveRecord::Schema[7.1].define(version: 2023_12_17_141925) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -63,6 +63,7 @@ ActiveRecord::Schema[7.1].define(version: 2023_11_12_205335) do
     t.datetime "end_date"
     t.float "optimal_hourly_commit"
     t.string "granularity", default: "daily", null: false
+    t.jsonb "chart_data", default: {}, null: false
     t.index ["account_id"], name: "index_analyses_on_account_id"
   end
 

@@ -61,7 +61,7 @@ class CostExplorer
         }
     end
 
-    def get_last_ninety_days
+    def get_last_ninety_days(compute_only: true)
         today = Date.today
         ninety_days_ago = today - 90
         start_date = ninety_days_ago.strftime('%Y-%m-%d')
@@ -71,6 +71,7 @@ class CostExplorer
               start: start_date,
               end: end_date
             },
+            filter: compute_only ? Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER : nil,
             granularity: 'DAILY',
             metrics: ['NetAmortizedCost']
           })
@@ -82,6 +83,7 @@ class CostExplorer
                 result.total['NetAmortizedCost'].amount.to_f.round(2)
             ]
         end
+
         return cost_summary
     end
 
@@ -176,12 +178,12 @@ class CostExplorer
 
         return {
             value: optimal,
-            data: chart_data
+            chart_data: chart_data
         }
     end
 
     def get_monthly_savings_for_dataset(dataset)
-        dataset.sum { |row| row[:savings] } * 30.4 / dataset.count
+        (dataset.sum { |row| row[:savings] } * 30.4 / dataset.count).round(2)
     end
 
     def get_full_dataset(csp_prime_hourly)
@@ -222,31 +224,13 @@ class CostExplorer
         rows
     end
 
+
     def eligible_compute_cost_and_usage
         # aws ce get-dimension-values --time-period Start=2022-01-01,End=2023-12-10 --dimension USAGE_TYPE --profile infrastructure-admin | jq '.DimensionValues | .[] | .Value'
         @eligible_compute_cost_and_usage ||= get_cost_and_usage(
             start_date: start_date,
             end_date: end_date,
-            filter: {
-                and: [
-                    { dimensions: { key: "PURCHASE_TYPE", values: ["On Demand Instances"] } },
-                    {
-                        dimensions: {
-                            key: "SERVICE",
-                            values: [
-                                "Amazon Elastic Compute Cloud - Compute",
-                                "AWS Lambda",
-                                "Amazon Elastic Container Service",
-                                "Amazon Elastic Container Service for Kubernetes",
-                                "Amazon SageMaker"
-                            ]
-                        }
-                    },
-                    # Temp solution. Figure out why we can't use wildcard
-                    { not: { dimensions: { key: "USAGE_TYPE", values: Constants::USAGE_TYPES[:TOP_DATA_TRANSFER] } } }
-                    # { not: { dimensions: { key: "USAGE_TYPE", values: ["*Bytes*"] } } }
-                  ]
-            },
+            filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER,
             granularity: 'DAILY',
             metrics: 'NetAmortizedCost'
         ).results_by_time.map { |result| result.total['NetAmortizedCost'].amount }

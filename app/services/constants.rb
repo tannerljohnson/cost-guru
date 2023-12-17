@@ -792,4 +792,25 @@ class Constants
       "ZA-DataTransfer-Out-OBytes",
     ]
   }
+
+  CSP_ELIGIBLE_COST_AND_USAGE_FILTER = {
+    and: [
+        { dimensions: { key: "PURCHASE_TYPE", values: ["On Demand Instances"] } },
+        {
+            dimensions: {
+                key: "SERVICE",
+                values: [
+                    "Amazon Elastic Compute Cloud - Compute",
+                    "AWS Lambda",
+                    "Amazon Elastic Container Service",
+                    "Amazon Elastic Container Service for Kubernetes",
+                    "Amazon SageMaker"
+                ]
+            }
+        },
+        # Temp solution. Figure out why we can't use wildcard
+        { not: { dimensions: { key: "USAGE_TYPE", values: USAGE_TYPES[:TOP_DATA_TRANSFER] } } }
+        # { not: { dimensions: { key: "USAGE_TYPE", values: ["*Bytes*"] } } }
+      ]
+  }
 end
