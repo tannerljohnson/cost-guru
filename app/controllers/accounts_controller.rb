@@ -38,12 +38,7 @@ class AccountsController < ApplicationController
         raise "Account not found" unless @account
 
         @cost_summary = CostExplorer.get_cost_summary(account: @account)
-        today = Date.today
-        start_of_month = today.beginning_of_month
-
-        @csp_data = CostExplorer.get_savings_plans_coverage_and_utilization(
-          account: @account, start_date: Date.today.beginning_of_month, end_date: Date.today
-        )
+        @csp_data = CostExplorer.get_savings_plans_coverage_and_utilization(account: @account, start_date: Date.today.beginning_of_month, end_date: Date.today)
     end
 
     private

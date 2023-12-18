@@ -44,7 +44,9 @@ class AnalysesController < ApplicationController
       enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount,
       csp_prime: @analysis.optimal_hourly_commit
     )
-    @last_ninety_days = CostExplorer.get_cost_summary(account: @account).fetch(:last_ninety_days)
+
+    last_ninety_days_cost_and_usage = CostExplorer.get_cost_and_usage(account: @account, start_date: Date.today - 90, end_date: Date.today, filter: Constants::SERVICES_TO_IGNORE_FILTER)
+    @last_ninety_days = GraphHelpers.format_cost_and_usage(last_ninety_days_cost_and_usage)
   end
 
   def destroy

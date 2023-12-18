@@ -48,13 +48,15 @@
     <br/>
     <h2>Optimal Commitment</h2>
     <div>We searched all possible commitment values to optimize savings</div>
-    <%= line_chart(@analysis.chart_data) %>
+    <%= line_chart(@analysis.chart_data, xtitle: "Hourly Commitment $", ytitle: "Monthly Savings $", prefix: "$", thousands: ",", round: 2) %>
     <br/>
     <h2>Eligible On-Demand</h2>
     <div>Here's the last 3 months of compute-eligible on-demand spend for reference</div>
     <%
-        last_ninety_total_excluding_analysis_period = @last_ninety_days.filter { |res| !(res[0] >= @analysis.start_date && res[0] <= @analysis.end_date)  }
-        cost_for_analysis_period = @last_ninety_days.filter { |res| res[0] >= @analysis.start_date && res[0] <= @analysis.end_date }
+        last_ninety_days_data = @last_ninety_days[0][:data]
+        last_ninety_total_excluding_analysis_period = last_ninety_days_data.filter { |res| !(res[0] >= @analysis.start_date && res[0] <= @analysis.end_date)  }
+        # last_ninety_total_excluding_analysis_period = @last_ninety_days.filter { |res| !(res[0] >= @analysis.start_date && res[0] <= @analysis.end_date)  }
+        cost_for_analysis_period = last_ninety_days_data.filter { |res| res[0] >= @analysis.start_date && res[0] <= @analysis.end_date }
         ninety_day_lookback_chart_data = [
             {
                 name: 'Last 90 days',
@@ -66,7 +68,7 @@
             }
         ]
     %>
-    <%= line_chart(ninety_day_lookback_chart_data) %>
+    <%= line_chart(ninety_day_lookback_chart_data, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
     <br/>
     <h2>Total Spend</h2>
     <div>If your spend remains the same as the sample period, here is the current vs new spend</div>
@@ -98,7 +100,7 @@
             # },
         ]
     %>
-    <%= line_chart(spend_delta_chart_data) %>
+    <%= line_chart(spend_delta_chart_data, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
     <br/>
     <h2>Coverage %</h2>
     <div>This is how the coverage would change</div>
@@ -114,7 +116,7 @@
             }
         ]
     %>
-    <%= line_chart(chart_data) %>
+    <%= line_chart(chart_data, legend: "bottom", xtitle: "Date", ytitle: "Percent", suffic: "%", round: 2) %>
     <br/>
 
     <h2>Here's the numbers breakdown</h3>
