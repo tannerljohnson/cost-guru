@@ -16,26 +16,30 @@
         </div>
     </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Start Date</th>
-                <th>Revenue</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            <% @revenue_months.each do |revenue_month| %>
-                <tr>
-                    <td><%= revenue_month.start_date.to_s.to_date %></td>
-                    <td><%= number_to_currency(revenue_month.revenue) %></td>
-                    <td>
-                        <%= link_to "Delete", account_revenue_month_path(@account, revenue_month), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
-                    </td>
-                </tr>
-            <% end %>
-        </tbody>
-    </table>
+    <div class="row">
+        <div class="col">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Start Date</th>
+                        <th>Revenue</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% @revenue_months.each do |revenue_month| %>
+                        <tr>
+                            <td><%= revenue_month.start_date.to_s.to_date %></td>
+                            <td><%= number_to_currency(revenue_month.revenue) %></td>
+                            <td>
+                                <%= link_to "Delete", account_revenue_month_path(@account, revenue_month), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
+                            </td>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <div>
         <%= link_to "New Entry", new_account_revenue_month_path %>

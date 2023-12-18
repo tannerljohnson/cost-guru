@@ -1,6 +1,15 @@
 <section class="container">
-    <h1>New analysis</h1>
-    <p>Input fields here.</p>
+    <div class="row">
+        <div class="col">
+            <h1>New analysis</h1>
+            <p>Input fields here.</p>
+        </div>
+    </div>
+
+    <div>
+        
+    </div>
+
     <%= form_for [@account, @analysis] do |f| %>
         <div class="field">
             <%= f.label :start_date %>

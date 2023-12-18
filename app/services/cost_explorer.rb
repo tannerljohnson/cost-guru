@@ -45,7 +45,6 @@ class CostExplorer
         :end_date,
         :enterprise_cross_service_discount,
         :granularity,
-        :eligible_compute_cost_and_usage,
         :filter,
         :granularity,
         :group_by,
@@ -69,28 +68,30 @@ class CostExplorer
     #  {:start=>"2023-12-15", :total=>69740.66, :groups=>[]},
     #  {:start=>"2023-12-16", :total=>54981.15, :groups=>[]},
     #  {:start=>"2023-12-17", :total=>52586.98, :groups=>[]}]
-    def get_cost_and_usage
-        today = Date.today
+    def get_cost_and_usage(overrides = {})
+        group_by_key = overrides[:group_by] || group_by
+        start_date_for_query = overrides[:start_date] || start_date
+        end_date_for_query = overrides[:end_date] || end_date
         request_body = {
             time_period: {
-              start: start_date,
-              end: end_date
+              start: start_date_for_query,
+              end: end_date_for_query
             },
-            filter: filter,
-            granularity: granularity,
-            group_by: group_by ? [
+            filter: overrides[:filter] || filter,
+            granularity: overrides[:granularity] || granularity,
+            group_by: group_by_key ? [
                 {
                   type: 'DIMENSION',
-                  key: group_by
+                  key: group_by_key
                 }
             ] : nil,
-            metrics: [metrics]
+            metrics: [overrides[:metrics] || metrics]
         }
         response = client.get_cost_and_usage(request_body)
         results_hash = {}
-
-
-        filtered_results = response.results_by_time.filter { |res| res.time_period.start < today.to_s }
+        filtered_results = response.results_by_time.filter do |res|
+            res.time_period.start < end_date_for_query
+        end
         results = []
         filtered_results.map do |result_by_time|
             groups = result_by_time.groups.map do |group|
@@ -116,50 +117,35 @@ class CostExplorer
     end
 
     def get_cost_summary
+        today = Date.today
+        tomorrow = (today + 1).strftime('%Y-%m-%d')
+        start_of_month = today.beginning_of_month.strftime('%Y-%m-%d')
+        end_of_month = (today.end_of_month + 1).strftime('%Y-%m-%d')
         # TODO: Make this more performant, there are duplicative calls
         Async do |task|
-            task.async { @this_month_current_by_day = get_this_month_current_by_day }
+            task.async do
+                 @this_month_current_by_day = get_cost_and_usage({
+                    filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
+                    start_date: start_of_month,
+                    end_date: tomorrow
+                })
+            end
             task.async { @this_month_forecast_by_day = get_this_month_forecast_by_day }
-            task.async { @this_month_current_services_to_ignore = get_this_month_current_ignored_services }
+            task.async do
+                @this_month_current_services_to_ignore = get_cost_and_usage({
+                    start_date: start_of_month,
+                    end_date: end_of_month,
+                    filter: Constants::IGNORED_SERVICES_FOR_FORECAST_FILTER,
+                    group_by: "SERVICE"
+                })
+            end
         end
 
         {
             this_month_current_by_day: @this_month_current_by_day,
             this_month_forecast_by_day: @this_month_forecast_by_day,
-            this_month_current_services_to_ignore: @this_month_current_services_to_ignore,
-            last_ninety_days: @last_ninety_days
+            this_month_current_services_to_ignore: @this_month_current_services_to_ignore
         }
-    end
-
-    def get_this_month_current_by_day(filter: Constants::SERVICES_TO_IGNORE_FILTER, group_by: nil)
-        today = Date.today
-        start_of_month = today.beginning_of_month
-        end_of_month = today.end_of_month + 1
-
-        start_date = start_of_month.strftime('%Y-%m-%d')
-        end_date = end_of_month.strftime('%Y-%m-%d')
-        response = client.get_cost_and_usage({
-            time_period: {
-              start: start_date,
-              end: end_date
-            },
-            filter: filter,
-            granularity: 'DAILY',
-            group_by: group_by,
-            metrics: ['NetAmortizedCost']
-          })
-
-
-        # filter out today till end of month. this will be covered by the forecast
-        cost_summary = response.results_by_time.filter do |res|
-            res.time_period.start < today.to_s
-        end.map do |result|
-            [
-                result.time_period.start,
-                result.total['NetAmortizedCost'].amount.to_f.round(2)
-            ]
-        end
-        return cost_summary
     end
 
     def get_this_month_current_ignored_services
@@ -169,83 +155,38 @@ class CostExplorer
 
         start_date = start_of_month.strftime('%Y-%m-%d')
         end_date = end_of_month.strftime('%Y-%m-%d')
-        response = client.get_cost_and_usage({
-            time_period: {
-              start: start_date,
-              end: end_date
-            },
-            filter: {
-                dimensions: {
-                    key: "SERVICE", values: Constants::SERVICES_TO_IGNORE
-                }
-            },
-            granularity: 'DAILY',
-            group_by: [
-                {
-                  type: 'DIMENSION',
-                  key: 'SERVICE'
-                }
-            ],
-            metrics: ['NetAmortizedCost']
-          })
 
-        # [
-        #   {name: "confluent", data: ['2023-12-02', 109800.20]},
-        #   {name: "cohere", data: ['2023-12-02', 109800.20]}
-        # ]
 
-        # {
-        #     "cohere stuff": [],
-        #     "confluent stuff": [],
-        # }
-
-        results_hash = {}
-        response.results_by_time.filter do |res|
-            res.time_period.start < today.to_s
-        end.each do |grouped_day|
-            date = grouped_day.time_period.start
-            grouped_day.groups.each do |group|
-                key = group.keys.first
-                unless results_hash.keys.include?(key)
-                    results_hash[key] = []
-                end
-                results_hash[key] << [date, group.metrics['NetAmortizedCost'].amount.to_f.round(2)]
-            end
-        end
-
-        chart_data = results_hash.map do |key, data|
-            {
-                name: key,
-                data: data
-            }
-        end
-        chart_data
+        get_cost_and_usage({
+            start_date: start_date,
+            end_date: end_date,
+            filter: Constants::IGNORED_SERVICES_FOR_FORECAST_FILTER,
+            group_by: "SERVICE"
+        })
     end
 
     def get_this_month_forecast_by_day
         # +1 due to GMT
-        today = Date.today + 1
+        today = Date.today
         end_of_month = today.end_of_month + 1
-
-        start_date = today.strftime('%Y-%m-%d')
-        end_date = end_of_month.strftime('%Y-%m-%d')
 
         response = client.get_cost_forecast({
             time_period: {
-                start: start_date,
-                end: end_date
+                start: today.strftime('%Y-%m-%d'),
+                end: end_of_month.strftime('%Y-%m-%d')
             },
-            filter: Constants::SERVICES_TO_IGNORE_FILTER,
+            filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
             granularity: 'DAILY',
             metric: 'NET_AMORTIZED_COST'
         })
 
 
         response.forecast_results_by_time.map do |result|
-            [
-                result.time_period.start,
-                result.mean_value.to_f.round(2)
-            ]
+            {
+                start: result.time_period.start,
+                total: result.mean_value.to_f.round(2),
+                groups: []
+            }
         end
     end
 
@@ -298,7 +239,7 @@ class CostExplorer
         # TODO: Support hourly granularity
         csp_prime_daily = csp_prime_hourly * 24
         csp_prime_in_on_demand = csp_prime_daily / (1 - CSP_DISCOUNT_RATE)
-        on_demand_post_discount = eligible_compute_cost_and_usage
+        on_demand_post_discount = get_cost_and_usage({ filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER }).map { |result_by_time| result_by_time[:total] }
         savings_plans = get_compute_savings_plan_spending_by_day
         rows = (Date.parse(start_date)...Date.parse(end_date)).to_a.each_with_index.map do |date, i|
             on_demand_post_discount_unit = on_demand_post_discount[i].to_f
@@ -332,18 +273,6 @@ class CostExplorer
         rows
     end
 
-
-    def eligible_compute_cost_and_usage
-        # aws ce get-dimension-values --time-period Start=2022-01-01,End=2023-12-10 --dimension USAGE_TYPE --profile infrastructure-admin | jq '.DimensionValues | .[] | .Value'
-        @eligible_compute_cost_and_usage ||= get_cost_and_usage_deprecated(
-            start_date: start_date,
-            end_date: end_date,
-            filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER,
-            granularity: 'DAILY',
-            metrics: 'NetAmortizedCost'
-        ).results_by_time.map { |result| result.total['NetAmortizedCost'].amount }
-    end
-
     def get_compute_savings_plans_inventory
         # TODO: Add describe*, other read for savingsplan*, elasticache, rds in notion labs
         # Also might need it for other stuff
@@ -371,8 +300,6 @@ class CostExplorer
             },
             granularity: 'DAILY'
         })
-
-
         utilization_data = utilization_response.savings_plans_utilizations_by_time.map do |data|
             [data.time_period.start, data.utilization.utilization_percentage.to_f]
         end
@@ -384,11 +311,9 @@ class CostExplorer
             },
             granularity: 'DAILY'
         })
-
         coverage_data = coverage_response.savings_plans_coverages.map do |data|
             [data.time_period.start, data.coverage.coverage_percentage.to_f.round(2)]
         end
-
 
         {
             coverage: coverage_data,
@@ -407,27 +332,13 @@ class CostExplorer
         })
 
         # Extract and return the spending data
-        spending_data = response.savings_plans_utilizations_by_time.map do |data|
+        response.savings_plans_utilizations_by_time.map do |data|
             apply_enterprise_discount(data.utilization.total_commitment.to_f)
         end
-
-        return spending_data
     end
 
     def apply_enterprise_discount(amount)
         amount * (1 - (enterprise_cross_service_discount / 100))
-    end
-
-    def get_cost_and_usage_deprecated(start_date:, end_date:, filter: nil, granularity: 'DAILY', metrics: 'NetAmortizedCost')
-        client.get_cost_and_usage(
-            time_period: {
-                start: start_date,
-                end: end_date
-            },
-            granularity: granularity,
-            metrics: [metrics],
-            filter: filter
-        )
     end
 
     def savings_plans_client
@@ -441,7 +352,7 @@ class CostExplorer
         return unless account.is_connected?
         Aws.config.update({ region: 'us-west-2' })
 
-        @client = Aws::CostExplorer::Client.new(credentials: get_iam_credentials)
+        @client ||= Aws::CostExplorer::Client.new(credentials: get_iam_credentials)
     end
 
     def get_iam_credentials

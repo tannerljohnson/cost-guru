@@ -2,17 +2,19 @@
     chart_data = [
         {
             name: 'Actuals',
-            data: @cost_summary[:this_month_current_by_day]
+            data: @cost_summary[:this_month_current_by_day].map { |result_by_time| [result_by_time[:start], result_by_time[:total]] }
         },
         {
             name: 'Forecast',
-            data: @cost_summary[:this_month_forecast_by_day]
+            data: @cost_summary[:this_month_forecast_by_day].map { |result_by_time| [result_by_time[:start], result_by_time[:total]] }
         }
     ]
-    current_monthly_total = @cost_summary[:this_month_current_by_day].sum { |data| data[1] }
-    expected_month_end_total = current_monthly_total + @cost_summary[:this_month_forecast_by_day].sum { |data| data[1] }
-    current_month_current_services_to_ignore_total = @cost_summary[:this_month_current_services_to_ignore].sum do |group|
-        group[:data].sum { |data| data[1] }
+    current_monthly_total = @cost_summary[:this_month_current_by_day].sum do |result_by_time| 
+        result_by_time[:total]
+    end
+    expected_month_end_total = current_monthly_total + @cost_summary[:this_month_forecast_by_day].sum { |result_by_time| result_by_time[:total] }
+    current_month_current_services_to_ignore_total = @cost_summary[:this_month_current_services_to_ignore].sum do |result_by_time|
+        result_by_time[:total]
     end
 %>
 <section class="container">
@@ -53,7 +55,18 @@
             <h5>Non-Core Usage</h5>
             <div class="row my-4">
                 <div class="col">
-                    <%= column_chart(@cost_summary[:this_month_current_services_to_ignore], stacked: true, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+                    <%= 
+                        column_chart(
+                            GraphHelpers.format_cost_and_usage_for_chart(@cost_summary[:this_month_current_services_to_ignore]), 
+                            stacked: true, 
+                            legend: "bottom", 
+                            xtitle: "Date", 
+                            ytitle: "Dollars", 
+                            prefix: "$", 
+                            thousands: ",", 
+                            round: 2
+                        )
+                    %>
                 </div>
             </div>
             <div class="mb-4">

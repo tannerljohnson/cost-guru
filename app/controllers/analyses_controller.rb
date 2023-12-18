@@ -45,7 +45,7 @@ class AnalysesController < ApplicationController
       csp_prime: @analysis.optimal_hourly_commit
     )
 
-    last_ninety_days_cost_and_usage = CostExplorer.get_cost_and_usage(account: @account, start_date: Date.today - 90, end_date: Date.today, filter: Constants::SERVICES_TO_IGNORE_FILTER)
+    last_ninety_days_cost_and_usage = CostExplorer.get_cost_and_usage(account: @account, start_date: Date.today - 90, end_date: Date.today, filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER)
     @last_ninety_days = GraphHelpers.format_cost_and_usage_for_chart(last_ninety_days_cost_and_usage)
   end
 
