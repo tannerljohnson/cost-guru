@@ -70,14 +70,14 @@
             <h5>Coverage</h5>
             <div class="row my-4">
                 <div class="col">
-                    Chart
+                    <%= column_chart(@csp_data[:coverage], xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
                 </div>
             </div>
 
             <h5>Utilization</h5>
             <div class="row my-4">
                 <div class="col">
-                    Chart
+                    <%= column_chart(@csp_data[:utilization], xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
                 </div>
             </div>
         </div>

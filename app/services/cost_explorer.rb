@@ -9,6 +9,10 @@ class CostExplorer
         new(account: account).get_compute_savings_plans_inventory
     end
 
+    def self.get_savings_plans_coverage_and_utilization(account:, start_date:, end_date:)
+        new(account: account, start_date: start_date, end_date: end_date).get_savings_plans_coverage_and_utilization
+    end
+
     def self.get_full_dataset(
         account:,
         start_date:,
@@ -180,7 +184,8 @@ class CostExplorer
     end
 
     def get_this_month_forecast_by_day
-        today = Date.today
+        # +1 due to GMT
+        today = Date.today + 1
         end_of_month = today.end_of_month + 1
 
         start_date = today.strftime('%Y-%m-%d')
@@ -317,6 +322,39 @@ class CostExplorer
                 end_date: savings_plan.end,
             }
         end
+    end
+
+    def get_savings_plans_coverage_and_utilization
+        utilization_response = client.get_savings_plans_utilization({
+            time_period: {
+                start: start_date,
+                end: end_date
+            },
+            granularity: 'DAILY'
+        })
+
+
+        utilization_data = utilization_response.savings_plans_utilizations_by_time.map do |data|
+            [data.time_period.start, data.utilization.utilization_percentage.to_f]
+        end
+
+        coverage_response = client.get_savings_plans_coverage({
+            time_period: {
+                start: start_date,
+                end: end_date
+            },
+            granularity: 'DAILY'
+        })
+
+        coverage_data = coverage_response.savings_plans_coverages.map do |data|
+            [data.time_period.start, data.coverage.coverage_percentage.to_f.round(2)]
+        end
+
+
+        {
+            coverage: coverage_data,
+            utilization: utilization_data
+        }
     end
 
     def get_compute_savings_plan_spending_by_day
