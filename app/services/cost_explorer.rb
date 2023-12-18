@@ -1,4 +1,5 @@
 class CostExplorer
+    # This is for a 3-year no upfront commitment.
     CSP_DISCOUNT_RATE = 0.512
 
     def self.get_cost_and_usage(account:, start_date:, end_date:, granularity: "DAILY", filter: nil, group_by: nil, metrics: "NetAmortizedCost")
