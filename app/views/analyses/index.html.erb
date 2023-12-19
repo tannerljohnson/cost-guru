@@ -1,44 +1,54 @@
 <section class="container">
-  <h1>Analyses for <%= @account.name %></h1>
-  <p>Get AWS cost efficiency recommendations for your current usage.</p>
+  <div class="row">
+    <div class="col">
+      <h3 class="display-3">SmartRecommendations for <%= @account.name %></h3>
 
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Created At</th>
-        <th>Start Date</th>
-        <th>End Date</th>
-        <th>Enterprise Discount</th>
-        <th>Optimal Commit</th>
-        <th></th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @analyses.each do |analysis| %>
-        <tr>
-          <td><%= analysis.created_at.to_date %></td>
-          <td><%= analysis.start_date.to_s.to_date %></td>
-          <td><%= analysis.end_date.to_s.to_date %></td>
-          <td><%= analysis.enterprise_cross_service_discount %></td>
-          <td><%= analysis.optimal_hourly_commit&.round(2) %></td>
-          <td>
-            <a href="<%= account_analysis_path(@account, analysis) %>">
-              View
-            </a>
-          </td>
-          <td>
-              <%= link_to "Delete", account_analysis_path(@account, analysis), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
-
-  <div>
-      <%= link_to "New Analysis", new_account_analysis_path %>
+      <div class="row">
+        <div class="col-8"> 
+          <p>Get AWS cost efficiency recommendations for your current usage.</p>
+        </div>
+        <div class="col-4 text-end"> 
+          <a href="<%= new_account_analysis_path %>" class="btn btn-primary btn-outline" data-turbolinks-action="replace">New Run</a>
+        </div>
+      </div>
+    </div>    
   </div>
-  <div>
-      <%= link_to "Back to Account", account_path(@account) %>
+  
+
+  <div class="row">
+    <div class="col">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Ran At</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Enterprise Discount</th>
+            <th>Optimal Commit</th>
+            <th></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @analyses.each do |analysis| %>
+            <tr>
+              <td><%= analysis.created_at.to_date %></td>
+              <td><%= analysis.start_date.to_s.to_date %></td>
+              <td><%= analysis.end_date.to_s.to_date %></td>
+              <td><%= analysis.enterprise_cross_service_discount %>%</td>
+              <td><%= number_to_currency(analysis.optimal_hourly_commit) %></td>
+              <td>
+                <a href="<%= account_analysis_path(@account, analysis) %>">
+                  View
+                </a>
+              </td>
+              <td>
+                  <%= link_to "Delete", account_analysis_path(@account, analysis), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
   </div>
 </section>
