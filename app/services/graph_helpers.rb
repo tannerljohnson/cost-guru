@@ -62,11 +62,47 @@ class GraphHelpers
     end
 
 
-    result_hash.map do |usage_key, usage_data|
+    results = result_hash.map do |usage_key, usage_data|
       {
         name: usage_key,
         data: usage_data
       }
     end
+    return results unless usage_keys.size >= 12
+
+    # if usage_keys.size >= 12, show 10, and collapse the remainder into an 'Other'
+    # { 'Ec2': 12, 'Other': 1 }
+    usage_key_totals = result_hash.map do |usage_key, usage_data|
+      total = usage_data.sum { |result_by_time| result_by_time[1] }
+      [usage_key, total]
+    end
+
+    # sort descending
+    usage_key_totals.sort! { |a, b| b[1] <=> a[1] }
+    top_usage_keys = usage_key_totals.first(10).map { |key, _total| key }
+
+    other_usage_data_hash = {}
+    results.each do |res|
+      unless top_usage_keys.include?(res[:name])
+        res[:data].each do |date, total|
+          unless other_usage_data_hash.key?(date)
+            other_usage_data_hash[date] = 0.0
+          end
+
+          other_usage_data_hash[date] += total
+        end
+      end
+    end
+    other_usage_data = other_usage_data_hash.to_a
+
+
+    filtered_results = results.filter do |res|
+      top_usage_keys.include?(res[:name])
+    end
+    filtered_results << {
+      name: 'Other',
+      data: other_usage_data
+    }
+    filtered_results
   end
 end

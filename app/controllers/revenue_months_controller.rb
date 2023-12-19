@@ -8,7 +8,7 @@ class RevenueMonthsController < ApplicationController
 
   def new
     @revenue_month = @account.revenue_months.new(
-      start_date: Date.today.beginning_of_month,
+      start_date: Time.now.utc.beginning_of_month,
       revenue: 0.0
     )
   end

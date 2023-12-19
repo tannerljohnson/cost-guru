@@ -1,7 +1,7 @@
 class TimeHelpers
     def self.percentage_of_month_passed
         # Get the current date
-        today = Date.today
+        today = Time.now.utc
 
         # Get the start and end dates of the current month
         start_of_month = today.beginning_of_month

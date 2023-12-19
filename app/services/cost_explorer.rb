@@ -117,7 +117,7 @@ class CostExplorer
     end
 
     def get_cost_summary
-        today = Date.today
+        today = Time.now.utc
         tomorrow = (today + 1).strftime('%Y-%m-%d')
         start_of_month = today.beginning_of_month.strftime('%Y-%m-%d')
         end_of_month = (today.end_of_month + 1).strftime('%Y-%m-%d')
@@ -127,7 +127,7 @@ class CostExplorer
                  @this_month_current_by_day = get_cost_and_usage({
                     filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
                     start_date: start_of_month,
-                    end_date: tomorrow
+                    end_date: today.strftime('%Y-%m-%d')
                 })
             end
             task.async { @this_month_forecast_by_day = get_this_month_forecast_by_day }
@@ -149,7 +149,7 @@ class CostExplorer
     end
 
     def get_this_month_current_ignored_services
-        today = Date.today
+        today = Time.now.utc
         start_of_month = today.beginning_of_month
         end_of_month = today.end_of_month + 1
 
@@ -167,7 +167,7 @@ class CostExplorer
 
     def get_this_month_forecast_by_day
         # +1 due to GMT
-        today = Date.today
+        today = Time.now.utc
         end_of_month = today.end_of_month + 1
 
         response = client.get_cost_forecast({

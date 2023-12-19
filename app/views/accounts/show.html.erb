@@ -31,28 +31,41 @@
         </div>
     </div>
     
-    <div class="row mt-4">
+    <div class="row mt-5 mb-2">
+        <div class="col">
+            <h4>Current Month</h4>
+        </div>
+    </div>
+    <div class="row mt-2">
         <div class="col">
             <div class="row text-center">
                 <div class="col">
-                    <h4>Current Month</h4>
+                    <h5>Core Usage</h5>
                 </div>
             </div>
-            <h5>Core Usage</h5>
             <div class="row my-4">
                 <div class="col">
                     <%= column_chart(chart_data, stacked: true, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
                 </div>
             </div>
         
-            <div>
-                <b>Month-to-Date:</b> <%= number_to_currency(current_monthly_total) %>
+            <div class="row text-center">
+                <div class="col">
+                    <b>Month-to-Date:</b> <%= number_to_currency(current_monthly_total) %>
+                </div>
             </div>    
-            <div class="mb-4">
-                <b>Forecast:</b> <%= number_to_currency(expected_month_end_total) %>
+            <div class="row text-center">
+                <div class="col">
+                    <b>Forecast:</b> <%= number_to_currency(expected_month_end_total) %>
+                </div>
             </div>
-        
-            <h5>Non-Core Usage</h5>
+        </div>
+        <div class="col">
+            <div class="row text-center">
+                <div class="col">
+                    <h5>Non-Core Usage</h5>
+                </div>
+            </div>
             <div class="row my-4">
                 <div class="col">
                     <%= 
@@ -69,83 +82,102 @@
                     %>
                 </div>
             </div>
-            <div class="mb-4">
-                <b>Month-to-Date:</b> <%= number_to_currency(current_month_current_services_to_ignore_total) %>
+            <div class="row text-center">
+                <div class="col">
+                    <b>Month-to-Date:</b> <%= number_to_currency(current_month_current_services_to_ignore_total) %>
+                </div>    
             </div>
         </div>
+    </div>
+
+    <div class="row mt-5 mb-2">
+        <div class="col">
+            <h4>Historicals</h4>
+        </div>
+    </div>
+    <div class="row mt-2">
         <div class="col">
             <div class="row text-center">
                 <div class="col">
-                    <h4>Compute Savings Plans</h4>
+                    <h5>Core Usage</h5>
                 </div>
             </div>
-            
-            <h5>Coverage</h5>
+            <div class="row my-4">
+                <div class="col">
+                    <%=
+                        column_chart(
+                            GraphHelpers.format_cost_and_usage_for_chart(@historical_usage_core), 
+                            stacked: true, 
+                            legend: "bottom", 
+                            xtitle: "Date", 
+                            ytitle: "Dollars", 
+                            prefix: "$", 
+                            thousands: ",", 
+                            round: 2
+                        )
+                    %>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col">
+            <div class="row text-center">
+                <div class="col">
+                    <h5>Non-Core Usage</h5>
+                </div>
+            </div>
+            <div class="row my-4">
+                <div class="col">
+                    <%=
+                        column_chart(
+                            GraphHelpers.format_cost_and_usage_for_chart(@historical_usage_non_core), 
+                            stacked: true, 
+                            legend: "bottom", 
+                            xtitle: "Date", 
+                            ytitle: "Dollars", 
+                            prefix: "$", 
+                            thousands: ",", 
+                            round: 2
+                        )
+                    %>
+                </div>
+            </div>            
+        </div>
+    </div>
+
+    <div class="row mt-5 mb-2">
+        <div class="col">
+            <h4>Compute Savings Plans</h4>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col">
+            <div class="row text-center">
+                <div class="col">
+                    <h5>Coverage</h5>
+                </div>
+            </div>
             <div class="row my-4">
                 <div class="col">
                     <%= column_chart(@csp_data[:coverage], xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
                 </div>
             </div>
-
-            <h5>Utilization</h5>
+        </div>
+        <div class="col">
+            <div class="row text-center">
+                <div class="col">
+                    <h5>Utilization</h5>
+                </div>
+            </div>
             <div class="row my-4">
                 <div class="col">
                     <%= column_chart(@csp_data[:utilization], xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
                 </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col">
-            <div class="row text-center">
-                <div class="col">
-                    <h4>Historical</h4>
-                </div>
-            </div>
-            <h5>Core Usage</h5>
-            <div class="row my-4">
-                <div class="col">
-                    insert chart
-                </div>
-            </div>
-        
-            <div class="mb-4">
-                <b>Total:</b> $$$
-            </div>
-
-            <h5>Non-Core Usage</h5>
-            <div class="row my-4">
-                <div class="col">
-                    insert chart
-                </div>
-            </div>
-            <div class="mb-4">
-                <b>Total:</b> $$$
-            </div>
-        </div>
-        <div class="col">
-            <div class="row text-center">
-                <div class="col">
-                    <h4>Reserved Instances</h4>
-                </div>
-            </div>
-            <h5>Coverage</h5>
-            <div class="row my-4">
-                <div class="col">
-                    Chart
-                </div>
-            </div>
-
-            <h5>Utilization</h5>
-            <div class="row my-4">
-                <div class="col">
-                    Chart
-                </div>
-            </div>
+            </div>            
         </div>
     </div>
 
-    <br/>
     <div>
         <%= link_to "CSP Analyses for #{@account.name}", account_analyses_path(@account) %>
     </div>
