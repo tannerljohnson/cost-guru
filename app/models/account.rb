@@ -20,6 +20,10 @@ class Account < ApplicationRecord
 
     encrypts :iam_secret_access_key
 
+    def type
+        'aws'
+    end
+
     def is_connected?
         cross_account_role_connected? || iam_connected?
     end

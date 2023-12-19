@@ -1,10 +1,23 @@
 <section class="container">
-    <h1>Please select an account or create a new one</h1>
-    <ul>
-        <% @accounts.each do |account| %>
-            <li><%= link_to account.name, account_path(account) %> <%= link_to "Edit", edit_account_path(account) %> </li>
-        <% end %>
-    </ul>
+    <div class="row">
+        <div class="col">
+            <h3 class="display-3">Your Connectors</h3>
+        </div>
+    </div>
 
-    <%= link_to "New Account", new_account_path, class: "btn btn-outline-dark" %>
+    <% @accounts.each do |account| %>
+        <div class="card mb-3" style="width: 22rem;">
+            <div class="card-body">
+                <h5 class="card-title"><%= account.name %></h5>
+                <h6 class="card-subtitle mb-2 text-body-secondary">
+                    Status: <%= account.is_connected? ? "Connected" : "Not Connected" %>
+                </h6>
+                <p class="card-text">Type: <%= account.type %> <i class="fa-solid fa-check" style="color: green;"></i></p>
+                <a href="<%= account_path(account) %>" class="card-link">Dashboard</a>
+                <a href="<%= edit_account_path(account) %>" class="card-link">Manage</a>
+            </div>
+        </div>
+    <% end %>
+
+    <%= link_to "New Connector", new_account_path, class: "btn btn-outline-primary" %>
 </section>

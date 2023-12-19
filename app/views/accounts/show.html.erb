@@ -23,9 +23,9 @@
             <h1 class="display-1"><%= @account.name %> Dashboard</h1>
             <div class="text-secondary">
                 <% if @account.is_connected? %>
-                    </i><i class="fa-solid fa-check" style="color: green;"></i> Connected with <%= @account.connection_strategy.gsub("_", " ") %>
+                    <i class="fa-solid fa-check" style="color: green;"></i> Connected with <%= @account.connection_strategy.gsub("_", " ") %>
                 <% else %>
-                    <i class="fa-solid fa-xmark" style="color: red;"> Not connected
+                    <i class="fa-solid fa-xmark" style="color: red;"></i> Not connected
                 <% end %>
             </div>
         </div>
