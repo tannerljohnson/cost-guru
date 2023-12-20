@@ -1,37 +1,35 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>CostGuru</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <%= csrf_meta_tags %>
-  <%= csp_meta_tag %>
-
-<%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-<%= javascript_importmap_tags %>
-</head>
-
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<body class="body-devise">
+  <head>
+    <title>CostGuru</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+  <br/>
+  <br/>
+  <br/>
+  <br/>
+  <br/>
+  <br/>
+  <body class="body-devise">
     <main>
-        <div class="container-fluid">
-            <div class="row justify-content-center">
-                <div class="col-sm-12 col-md-8 col-lg-6">
-                    <div class="devise-container d-flex flex-column align-items-center">
-                        <div class="row align-items-center" style="flex-grow: 0.5">
-                            <div class="devise-content px-4">
-                                <%= render(partial: 'devise/shared/flash_notice') unless @no_flash_notice %>
-                                <%= yield %>
-                            </div>
-                        </div>
-                    </div>
+      <div class="container-fluid">
+        <div class="row justify-content-center">
+          <div class="col-sm-12 col-md-8 col-lg-6">
+            <div class="devise-container d-flex flex-column align-items-center">
+              <div class="row align-items-center" style="flex-grow: 0.5">
+                <div class="devise-content px-4">
+                  <%= render(partial: 'devise/shared/flash_notice') unless @no_flash_notice %>
+                  <%= yield %>
                 </div>
+              </div>
             </div>
+          </div>
         </div>
+      </div>
     </main>
-</body>
+  </body>
 </html>

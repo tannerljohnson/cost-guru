@@ -80,3 +80,4 @@ group :test do
 end
 
 gem "async", "~> 2.6"
+gem 'htmlbeautifier'
