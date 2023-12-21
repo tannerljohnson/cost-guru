@@ -3,6 +3,7 @@ class CostExplorer
     CSP_DISCOUNT_RATE = 0.512
     DAY_FORMAT_STR = '%Y-%m-%d'.freeze
     HOUR_FORMAT_STR = '%Y-%m-%dT%H:%M:%SZ'.freeze
+    AVG_DAYS_IN_MONTH = 30.4
 
     def self.get_cost_and_usage(account:, start_date:, end_date:, granularity: "DAILY", filter: nil, group_by: nil, metrics: "NetAmortizedCost")
         new(account: account, start_date: start_date, end_date: end_date, granularity: granularity, filter: filter, group_by: group_by, metrics: metrics).get_cost_and_usage
@@ -20,8 +21,8 @@ class CostExplorer
         new(account: account, start_date: start_date, end_date: end_date, granularity: granularity).get_savings_plans_coverage_and_utilization
     end
 
-    def self.get_full_dataset(account:,start_date:,end_date:,enterprise_cross_service_discount:,csp_prime:)
-        new(account: account, start_date: start_date, end_date: end_date, enterprise_cross_service_discount: enterprise_cross_service_discount).get_full_dataset(csp_prime)
+    def self.get_full_dataset(account:, start_date:, end_date:, enterprise_cross_service_discount:, csp_prime:, granularity:)
+        new(account: account, start_date: start_date, end_date: end_date, enterprise_cross_service_discount: enterprise_cross_service_discount, granularity: granularity).get_full_dataset(csp_prime)
     end
 
     def self.compute_optimal_csp_prime(account:, start_date:, end_date:, enterprise_cross_service_discount:, granularity:)
@@ -120,40 +121,14 @@ class CostExplorer
 
     def get_cost_summary
         today = Time.now.utc
-        tomorrow = (today + 1).strftime('%Y-%m-%d')
-        start_of_month = today.beginning_of_month.strftime('%Y-%m-%d')
-        end_of_month = (today.end_of_month + 1).strftime('%Y-%m-%d')
-        # TODO: Make this more performant, there are duplicative calls
-        # Async do |task|
-        #     task.async do
-        #          @this_month_current_by_day = get_cost_and_usage({
-        #             filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
-        #             start_date: start_of_month,
-        #             end_date: today.strftime('%Y-%m-%d')
-        #         })
-        #     end
-        #     task.async { @this_month_forecast_by_day = get_this_month_forecast_by_day }
-        #     task.async do
-        #         @this_month_current_services_to_ignore = get_cost_and_usage({
-        #             start_date: start_of_month,
-        #             end_date: end_of_month,
-        #             filter: Constants::IGNORED_SERVICES_FOR_FORECAST_FILTER,
-        #             group_by: "SERVICE"
-        #         })
-            #     end
-        # end
-
-        # {
-        #     this_month_current_by_day: @this_month_current_by_day,
-        #     this_month_forecast_by_day: @this_month_forecast_by_day,
-        #     this_month_current_services_to_ignore: @this_month_current_services_to_ignore
-        # }
+        start_of_month = today.beginning_of_month.strftime(DAY_FORMAT_STR)
+        end_of_month = (today.end_of_month + 1).strftime(DAY_FORMAT_STR)
 
         {
             this_month_current_by_day: get_cost_and_usage({
                 filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
                 start_date: start_of_month,
-                end_date: today.strftime('%Y-%m-%d')
+                end_date: today.strftime(DAY_FORMAT_STR)
             }),
             this_month_forecast_by_day: get_this_month_forecast_by_day,
             this_month_current_services_to_ignore: get_cost_and_usage({
@@ -170,9 +145,8 @@ class CostExplorer
         start_of_month = today.beginning_of_month
         end_of_month = today.end_of_month + 1
 
-        start_date = start_of_month.strftime('%Y-%m-%d')
-        end_date = end_of_month.strftime('%Y-%m-%d')
-
+        start_date = start_of_month.strftime(DAY_FORMAT_STR)
+        end_date = end_of_month.strftime(DAY_FORMAT_STR)
 
         get_cost_and_usage({
             start_date: start_date,
@@ -189,8 +163,8 @@ class CostExplorer
 
         response = client.get_cost_forecast({
             time_period: {
-                start: today.strftime('%Y-%m-%d'),
-                end: end_of_month.strftime('%Y-%m-%d')
+                start: today.strftime(DAY_FORMAT_STR),
+                end: end_of_month.strftime(DAY_FORMAT_STR)
             },
             filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
             granularity: 'DAILY',
@@ -213,14 +187,15 @@ class CostExplorer
         high = 10_000.0
         epsilon = 1e-3
         data_points = []
+        on_demand_post_discount_cache = get_cost_and_usage({ filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER }).map { |result_by_time| result_by_time[:total] }
 
         while (high - low) > epsilon
             puts "Running binary search #{low} to #{high}"
             mid1 = low + (high - low) / 3
             mid2 = high - (high - low) / 3
 
-            mid1_savings = get_monthly_savings_for_dataset(get_full_dataset(mid1))
-            mid2_savings = get_monthly_savings_for_dataset(get_full_dataset(mid2))
+            mid1_savings = get_monthly_savings_for_dataset(get_full_dataset(mid1, on_demand_post_discount_cache))
+            mid2_savings = get_monthly_savings_for_dataset(get_full_dataset(mid2, on_demand_post_discount_cache))
             data_points << [mid1, mid1_savings]
             data_points << [mid2, mid2_savings]
 
@@ -232,7 +207,7 @@ class CostExplorer
         end
 
         optimal = (low + high) / 2
-        optimal_savings = get_monthly_savings_for_dataset(get_full_dataset(optimal))
+        optimal_savings = get_monthly_savings_for_dataset(get_full_dataset(optimal, on_demand_post_discount_cache))
         data_points << [optimal, optimal_savings]
         sorted_data_points = data_points.sort_by { |data| data[0] }
 
@@ -249,16 +224,45 @@ class CostExplorer
     end
 
     def get_monthly_savings_for_dataset(dataset)
-        (dataset.sum { |row| row[:savings] } * 30.4 / dataset.count).round(2)
+        (dataset.sum { |row| row[:savings] } * AVG_DAYS_IN_MONTH / dataset.count).round(2)
     end
 
-    def get_full_dataset(csp_prime_hourly)
+    def get_full_dataset(csp_prime_hourly, on_demand_post_discount_cache = nil)
         # TODO: Support hourly granularity
-        csp_prime_daily = csp_prime_hourly * 24
-        csp_prime_in_on_demand = csp_prime_daily / (1 - CSP_DISCOUNT_RATE)
-        on_demand_post_discount = get_cost_and_usage({ filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER }).map { |result_by_time| result_by_time[:total] }
-        savings_plans = get_compute_savings_plan_spending_by_day
-        rows = (Date.parse(start_date)...Date.parse(end_date)).to_a.each_with_index.map do |date, i|
+        csp_prime_for_time_unit = case granularity
+        when "HOURLY"
+            csp_prime_hourly
+        when "DAILY"
+            csp_prime_hourly * 24
+        else
+            csp_prime_hourly * 24 * AVG_DAYS_IN_MONTH
+        end
+
+        # csp_prime_daily = csp_prime_hourly * 24
+        csp_prime_in_on_demand = csp_prime_for_time_unit / (1 - CSP_DISCOUNT_RATE)
+        on_demand_post_discount = on_demand_post_discount_cache || get_cost_and_usage({ filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER }).map { |result_by_time| result_by_time[:total] }
+        savings_plans = get_compute_savings_plan_spending
+
+        date_rows = case granularity
+        when "HOURLY"
+            start_datetime = DateTime.parse(start_date)
+            end_datetime = DateTime.parse(end_date)
+
+            datetimes = []
+            current_datetime = start_datetime
+            while current_datetime < end_datetime
+                datetimes << current_datetime
+                current_datetime += 1.hour
+            end
+            datetimes
+        when "DAILY"
+            (Date.parse(start_date)...Date.parse(end_date)).to_a
+        else
+            # TODO implement monthly? maybe.
+            []
+        end
+
+        rows = date_rows.each_with_index.map do |date, i|
             on_demand_post_discount_unit = on_demand_post_discount[i].to_f
             savings_plans_unit = savings_plans[i].to_f
             on_demand_covered_by_csp_unit = savings_plans_unit / (1 - CSP_DISCOUNT_RATE)
@@ -267,7 +271,7 @@ class CostExplorer
             total_we_spend_today_unit = on_demand_post_discount_unit + savings_plans_unit
             on_demand_pre_edp_post_csp_prime_unit = on_demand_pre_discount_unit - csp_prime_in_on_demand
             on_demand_post_edp_post_csp_prime_unit = [on_demand_pre_edp_post_csp_prime_unit * (1 - (enterprise_cross_service_discount / 100)), 0].max
-            new_total_unit = savings_plans_unit + csp_prime_daily + on_demand_post_edp_post_csp_prime_unit
+            new_total_unit = savings_plans_unit + csp_prime_for_time_unit + on_demand_post_edp_post_csp_prime_unit
             {
                 date: date,
                 on_demand_post_discount: on_demand_post_discount_unit,
@@ -277,7 +281,7 @@ class CostExplorer
                 coverage: (100 * on_demand_covered_by_csp_unit / (on_demand_post_discount_unit + on_demand_covered_by_csp_unit)).round(2),
                 on_demand_pre_discount: on_demand_pre_discount_unit,
                 total_we_spend_today: total_we_spend_today_unit,
-                csp_prime: csp_prime_daily,
+                csp_prime: csp_prime_for_time_unit,
                 csp_prime_in_on_demand: csp_prime_in_on_demand,
                 csp_prime_plus_csp_in_on_demand: csp_prime_plus_csp_in_on_demand,
                 on_demand_pre_edp_post_csp_prime: on_demand_pre_edp_post_csp_prime_unit,
@@ -338,14 +342,14 @@ class CostExplorer
         }
     end
 
-    def get_compute_savings_plan_spending_by_day
+    def get_compute_savings_plan_spending
         # Make the API call to get Compute Savings Plan utilization
         response = client.get_savings_plans_utilization({
             time_period: {
                 start: start_date,
                 end: end_date
             },
-            granularity: 'DAILY'
+            granularity: granularity
         })
 
         # Extract and return the spending data

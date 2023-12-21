@@ -18,17 +18,17 @@ class Analysis < ApplicationRecord
     default_scope { order(created_at: :desc) }
 
     GRANULARITY_OPTIONS = [
-        'daily',
-        # 'hourly',
+        'DAILY',
+        'HOURLY',
         # 'monthly'
     ]
 
 
     def recompute_optimal_hourly_commit!
         optimal_hourly = CostExplorer.compute_optimal_csp_prime(
-            account: self.account, 
-            start_date: self.start_date, 
-            end_date: self.end_date, 
+            account: self.account,
+            start_date: self.start_date,
+            end_date: self.end_date,
             enterprise_cross_service_discount: self.enterprise_cross_service_discount,
             granularity: self.granularity
         )

@@ -51,7 +51,8 @@ class AnalysesController < ApplicationController
       start_date: @analysis.start_date,
       end_date: @analysis.end_date,
       enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount,
-      csp_prime: @analysis.optimal_hourly_commit
+      csp_prime: @analysis.optimal_hourly_commit,
+      granularity: @analysis.granularity.upcase
     )
 
     last_ninety_days_cost_and_usage = CostExplorer.get_cost_and_usage(account: @account, start_date: Time.now.utc - 90.days, end_date: Time.now.utc, filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER, granularity: "DAILY")
