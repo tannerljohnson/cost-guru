@@ -1,18 +1,37 @@
 <section class="container">
     <% 
-        chart_data = [
+        revenue_chart_data = [
             {
                 name: 'Revenue',
                 data: @revenue_months.map do |revenue_month| 
                     [revenue_month.start_date.to_s.to_date, revenue_month.revenue] 
-                end.sort { |a, b| a[0] <=> b[0] }
+                end
             }
         ]
+
+        spend_chart_data = GraphHelpers.format_cost_and_usage_for_chart(@spend_by_month, "Spend")
+        merged_chart_data = GraphHelpers.merge_chart_cost_and_usage_data([revenue_chart_data, spend_chart_data])
+        spend_as_percent_of_revenue_data = BusinessMetrics.compute_spend_as_percent_of_revenue(spend_chart_data, revenue_chart_data)
     %>
-    <h1>Revenue for <%= @account.name %></h1>
     <div class="row">
         <div class="col">
-            <%= line_chart(chart_data, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+            <h1>Business Metrics</h1>
+        </div>
+    </div>
+    <div class="row mt-4 mb-3">
+        <div class="col">
+            <%= line_chart(merged_chart_data, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <h3>Spend as Percent of Revenue</h3>
+        </div>
+    </div>
+    <div class="row mt-4 mb-3">
+        <div class="col">
+            <%= line_chart(spend_as_percent_of_revenue_data, legend: "bottom", xtitle: "Date", ytitle: "Percent", suffic: "%", round: 2) %>
         </div>
     </div>
 
@@ -40,7 +59,6 @@
             </table>
         </div>
     </div>
-
     <div>
         <%= link_to "New Entry", new_account_revenue_month_path %>
     </div>

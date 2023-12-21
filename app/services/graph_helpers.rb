@@ -1,5 +1,38 @@
 class GraphHelpers
-  def self.format_cost_and_usage_for_chart(cost_and_usage_data)
+  def self.merge_chart_cost_and_usage_data(cost_and_usages)
+    # INPUT:
+    # [
+    #   [
+    #     {name: "On Demand", data: ['2023-12-02', 109800.20]}
+    #   ],
+    #   [
+    #     {name: "Savings Plans", data: ['2023-12-02', 109800.20]},
+    #   ],
+    # ]
+
+    # OUTPUT:
+    # [
+    #   {
+    #     name: "On Demand",
+    #     data: []
+    #   },
+    #   {
+    #     name: "Savings Plans",
+    #     data: []
+    #   },
+    # ]
+    cost_and_usages.map do |cost_and_usage|
+      raise "Cost and usage for merge cannot have groups" if cost_and_usage.size > 1
+
+      {
+        name: cost_and_usage.first[:name],
+        data: cost_and_usage.first[:data]
+      }
+    end
+  end
+
+  # series_name is applicable only if there are no groups
+  def self.format_cost_and_usage_for_chart(cost_and_usage_data, series_name = "Total")
     # INPUT
     # [
     #   {
@@ -36,7 +69,7 @@ class GraphHelpers
 
     if cost_and_usage_data.first.fetch(:groups).empty?
       return [
-        { name: "Total", data: cost_and_usage_data.map { |result_by_time| [result_by_time.fetch(:start), result_by_time.fetch(:total)] } }
+        { name: series_name, data: cost_and_usage_data.map { |result_by_time| [result_by_time.fetch(:start), result_by_time.fetch(:total)] } }
       ]
     end
 

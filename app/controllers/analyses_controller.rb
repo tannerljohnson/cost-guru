@@ -3,6 +3,14 @@ class AnalysesController < ApplicationController
   before_action :load_account!
 
   def index
+    request_params = {
+      account: @account,
+      start_date: (Time.now.utc - 6.months).beginning_of_month,
+      end_date: Time.now.utc,
+      granularity: "DAILY"
+    }
+    @on_demand_usage = CostExplorer.get_cost_and_usage(**request_params,  filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER)
+    @csp_usage = CostExplorer.get_cost_and_usage(**request_params, filter: Constants::CSP_ONLY_USAGE_FILTER)
     @analyses = @account.analyses.order(created_at: :desc)
   end
 

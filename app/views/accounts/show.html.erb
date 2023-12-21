@@ -18,57 +18,55 @@
     end
 %>
 <section class="container">
-    <div class="row">
-        <div class="col">
-            <h1 class="display-1"><%= @account.name %> Dashboard</h1>
-            <div class="text-secondary">
-                <% if @account.is_connected? %>
-                    <i class="fa-solid fa-check" style="color: green;"></i> Connected with <%= @account.connection_strategy.gsub("_", " ") %>
-                <% else %>
-                    <i class="fa-solid fa-xmark" style="color: red;"></i> Not connected
-                <% end %>
-            </div>
-        </div>
+  <div class="row">
+    <div class="col">
+      <h1 class="display-1"><%= @account.name %> Dashboard</h1>
+      <div class="text-secondary">
+        <% if @account.is_connected? %>
+          <i class="fa-solid fa-check" style="color: green;"></i> Connected with <%= @account.connection_strategy.gsub("_", " ") %>
+        <% else %>
+          <i class="fa-solid fa-xmark" style="color: red;"></i> Not connected
+        <% end %>
+      </div>
     </div>
-    
-    <div class="row mt-5 mb-2">
-        <div class="col">
-            <h4>Current Month</h4>
-        </div>
+  </div>
+  <div class="row mt-5 mb-2">
+    <div class="col">
+      <h4>Current Month</h4>
     </div>
-    <div class="row mt-2">
+  </div>
+  <div class="row mt-2">
+    <div class="col">
+      <div class="row text-center">
         <div class="col">
-            <div class="row text-center">
-                <div class="col">
-                    <h5>Core Usage</h5>
-                </div>
-            </div>
-            <div class="row my-4">
-                <div class="col">
-                    <%= column_chart(chart_data, stacked: true, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
-                </div>
-            </div>
-        
-            <div class="row text-center">
-                <div class="col">
-                    <b>Month-to-Date:</b> <%= number_to_currency(current_monthly_total) %>
-                </div>
-            </div>    
-            <div class="row text-center">
-                <div class="col">
-                    <b>Forecast:</b> <%= number_to_currency(expected_month_end_total) %>
-                </div>
-            </div>
+          <h5>Core Usage</h5>
         </div>
+      </div>
+      <div class="row my-4">
         <div class="col">
-            <div class="row text-center">
-                <div class="col">
-                    <h5>Non-Core Usage</h5>
-                </div>
-            </div>
-            <div class="row my-4">
-                <div class="col">
-                    <%= 
+          <%= column_chart(chart_data, stacked: true, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+        </div>
+      </div>
+      <div class="row text-center">
+        <div class="col">
+          <b>Month-to-Date:</b> <%= number_to_currency(current_monthly_total) %>
+        </div>
+      </div>
+      <div class="row text-center">
+        <div class="col">
+          <b>Forecast:</b> <%= number_to_currency(expected_month_end_total) %>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="row text-center">
+        <div class="col">
+          <h5>Non-Core Usage</h5>
+        </div>
+      </div>
+      <div class="row my-4">
+        <div class="col">
+          <%= 
                         column_chart(
                             GraphHelpers.format_cost_and_usage_for_chart(@cost_summary[:this_month_current_services_to_ignore]), 
                             stacked: true, 
@@ -80,31 +78,30 @@
                             round: 2
                         )
                     %>
-                </div>
-            </div>
-            <div class="row text-center">
-                <div class="col">
-                    <b>Month-to-Date:</b> <%= number_to_currency(current_month_current_services_to_ignore_total) %>
-                </div>    
-            </div>
         </div>
-    </div>
-
-    <div class="row mt-5 mb-2">
+      </div>
+      <div class="row text-center">
         <div class="col">
-            <h4>Historicals</h4>
+          <b>Month-to-Date:</b> <%= number_to_currency(current_month_current_services_to_ignore_total) %>
         </div>
+      </div>
     </div>
-    <div class="row mt-2">
+  </div>
+  <div class="row mt-5 mb-2">
+    <div class="col">
+      <h4>Historicals – 6 Months</h4>
+    </div>
+  </div>
+  <div class="row mt-2">
+    <div class="col">
+      <div class="row text-center">
         <div class="col">
-            <div class="row text-center">
-                <div class="col">
-                    <h5>Core Usage</h5>
-                </div>
-            </div>
-            <div class="row my-4">
-                <div class="col">
-                    <%=
+          <h5>Core Usage</h5>
+        </div>
+      </div>
+      <div class="row my-4">
+        <div class="col">
+          <%=
                         column_chart(
                             GraphHelpers.format_cost_and_usage_for_chart(@historical_usage_core), 
                             stacked: true, 
@@ -116,20 +113,20 @@
                             round: 2
                         )
                     %>
-                </div>
-            </div>
         </div>
+      </div>
     </div>
-    <div class="row mt-2">
+  </div>
+  <div class="row mt-2">
+    <div class="col">
+      <div class="row text-center">
         <div class="col">
-            <div class="row text-center">
-                <div class="col">
-                    <h5>Non-Core Usage</h5>
-                </div>
-            </div>
-            <div class="row my-4">
-                <div class="col">
-                    <%=
+          <h5>Non-Core Usage</h5>
+        </div>
+      </div>
+      <div class="row my-4">
+        <div class="col">
+          <%=
                         column_chart(
                             GraphHelpers.format_cost_and_usage_for_chart(@historical_usage_non_core), 
                             stacked: true, 
@@ -141,50 +138,48 @@
                             round: 2
                         )
                     %>
-                </div>
-            </div>            
         </div>
+      </div>
     </div>
-
-    <div class="row mt-5 mb-2">
-        <div class="col">
-            <h4>Compute Savings Plans</h4>
-        </div>
+  </div>
+  <div class="row mt-5 mb-2">
+    <div class="col">
+      <h4>Compute Savings Plans – 6 Months</h4>
     </div>
-    <div class="row mt-2">
-        <div class="col">
-            <div class="row text-center">
-                <div class="col">
-                    <h5>Coverage</h5>
-                </div>
-            </div>
-            <div class="row my-4">
-                <div class="col">
-                    <%= column_chart(@csp_data[:coverage], xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
-                </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="row text-center">
-                <div class="col">
-                    <h5>Utilization</h5>
-                </div>
-            </div>
-            <div class="row my-4">
-                <div class="col">
-                    <%= column_chart(@csp_data[:utilization], xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
-                </div>
-            </div>            
-        </div>
+  </div>
+  <div class="row mt-5 mb-2 text-center">
+    <div class="col">
+      <h5>On Demand vs Savings Plans Spend</h5>
     </div>
-
-    <div>
-        <%= link_to "CSP Analyses for #{@account.name}", account_analyses_path(@account) %>
+  </div>
+  <div class="row mt-2">
+    <div class="col">
+      <%
+                on_demand_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@on_demand_usage, "On Demand")
+                csp_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@csp_usage, "Savings Plans")
+                merged_chart_data = GraphHelpers.merge_chart_cost_and_usage_data([csp_usage_for_chart, on_demand_usage_for_chart])
+            %>
+      <%= area_chart(merged_chart_data, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
     </div>
-    <div>
-        <%= link_to "Revenue for #{@account.name}", account_revenue_months_path(@account) %>
+  </div>
+  <div class="row mt-5 text-center">
+    <div class="col">
+      <h5>Coverage</h5>
     </div>
-    <div>
-        <%= link_to "Back to Accounts", accounts_path %>
+  </div>
+  <div class="row mt-2">
+    <div class="col">
+      <%= area_chart(@csp_data[:coverage], xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
     </div>
+  </div>
+  <div class="row mt-5 text-center">
+    <div class="col">
+      <h5>Utilization</h5>
+    </div>
+  </div>
+  <div class="row my-2">
+    <div class="col">
+      <%= area_chart(@csp_data[:utilization], xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
+    </div>
+  </div>
 </section>

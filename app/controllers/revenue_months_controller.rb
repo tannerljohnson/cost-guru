@@ -4,6 +4,8 @@ class RevenueMonthsController < ApplicationController
 
   def index
     @revenue_months = @account.revenue_months.order(start_date: :desc)
+    start_date = @revenue_months.last.start_date.beginning_of_month
+    @spend_by_month = CostExplorer.get_cost_and_usage(account: @account, start_date: start_date, end_date: Time.now.utc, granularity: "MONTHLY", filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER)
   end
 
   def new

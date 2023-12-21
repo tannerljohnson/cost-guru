@@ -14,8 +14,8 @@ class CostExplorer
         new(account: account).get_compute_savings_plans_inventory
     end
 
-    def self.get_savings_plans_coverage_and_utilization(account:, start_date:, end_date:)
-        new(account: account, start_date: start_date, end_date: end_date).get_savings_plans_coverage_and_utilization
+    def self.get_savings_plans_coverage_and_utilization(account:, start_date:, end_date:, granularity: "DAILY")
+        new(account: account, start_date: start_date, end_date: end_date, granularity: granularity).get_savings_plans_coverage_and_utilization
     end
 
     def self.get_full_dataset(account:,start_date:,end_date:,enterprise_cross_service_discount:,csp_prime:)
@@ -122,29 +122,44 @@ class CostExplorer
         start_of_month = today.beginning_of_month.strftime('%Y-%m-%d')
         end_of_month = (today.end_of_month + 1).strftime('%Y-%m-%d')
         # TODO: Make this more performant, there are duplicative calls
-        Async do |task|
-            task.async do
-                 @this_month_current_by_day = get_cost_and_usage({
-                    filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
-                    start_date: start_of_month,
-                    end_date: today.strftime('%Y-%m-%d')
-                })
-            end
-            task.async { @this_month_forecast_by_day = get_this_month_forecast_by_day }
-            task.async do
-                @this_month_current_services_to_ignore = get_cost_and_usage({
-                    start_date: start_of_month,
-                    end_date: end_of_month,
-                    filter: Constants::IGNORED_SERVICES_FOR_FORECAST_FILTER,
-                    group_by: "SERVICE"
-                })
-            end
-        end
+        # Async do |task|
+        #     task.async do
+        #          @this_month_current_by_day = get_cost_and_usage({
+        #             filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
+        #             start_date: start_of_month,
+        #             end_date: today.strftime('%Y-%m-%d')
+        #         })
+        #     end
+        #     task.async { @this_month_forecast_by_day = get_this_month_forecast_by_day }
+        #     task.async do
+        #         @this_month_current_services_to_ignore = get_cost_and_usage({
+        #             start_date: start_of_month,
+        #             end_date: end_of_month,
+        #             filter: Constants::IGNORED_SERVICES_FOR_FORECAST_FILTER,
+        #             group_by: "SERVICE"
+        #         })
+            #     end
+        # end
+
+        # {
+        #     this_month_current_by_day: @this_month_current_by_day,
+        #     this_month_forecast_by_day: @this_month_forecast_by_day,
+        #     this_month_current_services_to_ignore: @this_month_current_services_to_ignore
+        # }
 
         {
-            this_month_current_by_day: @this_month_current_by_day,
-            this_month_forecast_by_day: @this_month_forecast_by_day,
-            this_month_current_services_to_ignore: @this_month_current_services_to_ignore
+            this_month_current_by_day: get_cost_and_usage({
+                filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
+                start_date: start_of_month,
+                end_date: today.strftime('%Y-%m-%d')
+            }),
+            this_month_forecast_by_day: get_this_month_forecast_by_day,
+            this_month_current_services_to_ignore: get_cost_and_usage({
+                start_date: start_of_month,
+                end_date: end_of_month,
+                filter: Constants::IGNORED_SERVICES_FOR_FORECAST_FILTER,
+                group_by: "SERVICE"
+            })
         }
     end
 
@@ -298,7 +313,7 @@ class CostExplorer
                 start: start_date,
                 end: end_date
             },
-            granularity: 'DAILY'
+            granularity: granularity
         })
         utilization_data = utilization_response.savings_plans_utilizations_by_time.map do |data|
             [data.time_period.start, data.utilization.utilization_percentage.to_f]
@@ -309,7 +324,7 @@ class CostExplorer
                 start: start_date,
                 end: end_date
             },
-            granularity: 'DAILY'
+            granularity: granularity
         })
         coverage_data = coverage_response.savings_plans_coverages.map do |data|
             [data.time_period.start, data.coverage.coverage_percentage.to_f.round(2)]

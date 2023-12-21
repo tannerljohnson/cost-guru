@@ -869,6 +869,7 @@ class Constants
     COHERE_RERANK_MODEL_MULTILINGUAL = "Cohere Rerank Model - Multilingual",
     NOTION = "Notion",
     OUT_OF_CYCLE_BILLING_DATATRANSFER = "Out of Cycle Billing - DataTransfer",
+    PINECONE = "Pinecone Vector Database - Annual Commits",
     REFUND = "Refund",
     SAVINGS_PLANS_FOR_AWS_COMPUTE_USAGE = "Savings Plans for AWS Compute usage",
     TAX = "Tax",
@@ -884,6 +885,7 @@ class Constants
     COHERE_RERANK_MODEL_MULTILINGUAL,
     NOTION,
     OUT_OF_CYCLE_BILLING_DATATRANSFER,
+    PINECONE,
     REFUND,
     SAVINGS_PLANS_FOR_AWS_COMPUTE_USAGE,
     TAX,
@@ -900,6 +902,10 @@ class Constants
 
   IGNORED_SERVICES_FOR_FORECAST_FILTER = {
     dimensions: { key: "SERVICE", values: SERVICES_TO_IGNORE.excluding(SAVINGS_PLANS_FOR_AWS_COMPUTE_USAGE) }
+  }
+
+  CSP_ONLY_USAGE_FILTER = {
+    dimensions: { key: "PURCHASE_TYPE", values: ["Savings Plans"] }
   }
 
   CSP_ELIGIBLE_COST_AND_USAGE_FILTER = {

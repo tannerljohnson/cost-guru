@@ -2,19 +2,26 @@
   <div class="row">
     <div class="col">
       <h3 class="display-3">SmartRecommendations for <%= @account.name %></h3>
-
       <div class="row">
-        <div class="col-8"> 
+        <div class="col-8">
           <p>Get AWS cost efficiency recommendations for your current usage.</p>
         </div>
-        <div class="col-4 text-end"> 
+        <div class="col-4 text-end">
           <a href="<%= new_account_analysis_path %>" class="btn btn-primary btn-outline" data-turbolinks-action="replace">New Run</a>
         </div>
       </div>
-    </div>    
+    </div>
   </div>
-  
-
+  <div class="row">
+    <div class="col">
+      <%
+        on_demand_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@on_demand_usage, "On Demand")
+        csp_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@csp_usage, "Savings Plans")
+        merged_chart_data = GraphHelpers.merge_chart_cost_and_usage_data([on_demand_usage_for_chart, csp_usage_for_chart])
+      %>
+      <%= area_chart(merged_chart_data, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+    </div>
+  </div>
   <div class="row">
     <div class="col">
       <table class="table">
@@ -43,7 +50,7 @@
                 </a>
               </td>
               <td>
-                  <%= link_to "Delete", account_analysis_path(@account, analysis), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
+                <%= link_to "Delete", account_analysis_path(@account, analysis), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
               </td>
             </tr>
           <% end %>
