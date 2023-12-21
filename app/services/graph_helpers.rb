@@ -32,7 +32,7 @@ class GraphHelpers
   end
 
   # series_name is applicable only if there are no groups
-  def self.format_cost_and_usage_for_chart(cost_and_usage_data, series_name = "Total")
+  def self.format_cost_and_usage_for_chart(cost_and_usage_data, series_name = "Total", start_date_override = nil)
     # INPUT
     # [
     #   {
@@ -68,11 +68,18 @@ class GraphHelpers
     # ]
 
     if cost_and_usage_data.first.fetch(:groups).empty?
+      transformed_data = cost_and_usage_data.map { |result_by_time| [result_by_time.fetch(:start), result_by_time.fetch(:total)] }
+      filtered_data = start_date_override ? transformed_data.filter { |date, _total| date >= start_date_override } : transformed_data
+
       return [
-        { name: series_name, data: cost_and_usage_data.map { |result_by_time| [result_by_time.fetch(:start), result_by_time.fetch(:total)] } }
+        {
+          name: series_name,
+          data: filtered_data,
+        }
       ]
     end
 
+    # TODO: implement start_date_override for grouped data
     result_hash = {}
     usage_keys = cost_and_usage_data.map do |result_by_time|
       result_by_time[:groups].map { |group| group[0] }

@@ -9,8 +9,9 @@ class AnalysesController < ApplicationController
       end_date: Time.now.utc,
       granularity: "DAILY"
     }
-    @on_demand_usage = CostExplorer.get_cost_and_usage(**request_params,  filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER)
+    @on_demand_usage = CostExplorer.get_cost_and_usage(**request_params, filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER)
     @csp_usage = CostExplorer.get_cost_and_usage(**request_params, filter: Constants::CSP_ONLY_USAGE_FILTER)
+    @on_demand_usage_hourly = CostExplorer.get_cost_and_usage(**request_params, start_date: (Time.now.utc - 14.days).beginning_of_day, granularity: "HOURLY", filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER)
     @analyses = @account.analyses.order(created_at: :desc)
   end
 

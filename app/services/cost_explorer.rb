@@ -1,6 +1,8 @@
 class CostExplorer
     # This is for a 3-year no upfront commitment.
     CSP_DISCOUNT_RATE = 0.512
+    DAY_FORMAT_STR = '%Y-%m-%d'.freeze
+    HOUR_FORMAT_STR = '%Y-%m-%dT%H:%M:%SZ'.freeze
 
     def self.get_cost_and_usage(account:, start_date:, end_date:, granularity: "DAILY", filter: nil, group_by: nil, metrics: "NetAmortizedCost")
         new(account: account, start_date: start_date, end_date: end_date, granularity: granularity, filter: filter, group_by: group_by, metrics: metrics).get_cost_and_usage
@@ -28,8 +30,8 @@ class CostExplorer
 
     def initialize(account:, start_date: nil, end_date: nil, enterprise_cross_service_discount: nil, granularity: "DAILY", filter: nil, group_by: nil, metrics: "NetAmortizedCost")
         @account = account
-        @start_date = start_date&.strftime('%Y-%m-%d')
-        @end_date = end_date&.strftime('%Y-%m-%d')
+        @start_date = granularity == "HOURLY" ? start_date&.strftime(HOUR_FORMAT_STR) : start_date&.strftime(DAY_FORMAT_STR)
+        @end_date = granularity == "HOURLY" ? end_date&.strftime(HOUR_FORMAT_STR) : end_date&.strftime(DAY_FORMAT_STR)
         @enterprise_cross_service_discount = enterprise_cross_service_discount
         @granularity = granularity
         @filter = filter

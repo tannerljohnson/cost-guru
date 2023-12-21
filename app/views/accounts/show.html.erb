@@ -104,7 +104,7 @@
           <%=
                         column_chart(
                             GraphHelpers.format_cost_and_usage_for_chart(@historical_usage_core), 
-                            stacked: true, 
+                            stacked: false, 
                             legend: "bottom", 
                             xtitle: "Date", 
                             ytitle: "Dollars", 
@@ -129,7 +129,7 @@
           <%=
                         column_chart(
                             GraphHelpers.format_cost_and_usage_for_chart(@historical_usage_non_core), 
-                            stacked: true, 
+                            stacked: false, 
                             legend: "bottom", 
                             xtitle: "Date", 
                             ytitle: "Dollars", 
@@ -155,10 +155,10 @@
   <div class="row mt-2">
     <div class="col">
       <%
-                on_demand_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@on_demand_usage, "On Demand")
-                csp_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@csp_usage, "Savings Plans")
-                merged_chart_data = GraphHelpers.merge_chart_cost_and_usage_data([csp_usage_for_chart, on_demand_usage_for_chart])
-            %>
+        on_demand_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@on_demand_usage, "On Demand")
+        csp_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@csp_usage, "Savings Plans")
+        merged_chart_data = GraphHelpers.merge_chart_cost_and_usage_data([csp_usage_for_chart, on_demand_usage_for_chart])
+      %>
       <%= area_chart(merged_chart_data, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
     </div>
   </div>

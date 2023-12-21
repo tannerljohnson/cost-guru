@@ -1,3 +1,10 @@
+<%
+  on_demand_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@on_demand_usage, "On Demand")
+  csp_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@csp_usage, "Savings Plans")
+  merged_chart_data = GraphHelpers.merge_chart_cost_and_usage_data([csp_usage_for_chart, on_demand_usage_for_chart])
+  on_demand_usage_hourly_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@on_demand_usage_hourly, "On Demand Hourly")
+  on_demand_usage_daily = GraphHelpers.format_cost_and_usage_for_chart(@on_demand_usage, "On Demand", (Time.now.utc - 14.days).beginning_of_day.to_s)
+%>
 <section class="container">
   <div class="row">
     <div class="col">
@@ -12,16 +19,41 @@
       </div>
     </div>
   </div>
+
   <div class="row">
     <div class="col">
-      <%
-        on_demand_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@on_demand_usage, "On Demand")
-        csp_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@csp_usage, "Savings Plans")
-        merged_chart_data = GraphHelpers.merge_chart_cost_and_usage_data([on_demand_usage_for_chart, csp_usage_for_chart])
-      %>
-      <%= area_chart(merged_chart_data, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+      <h3>On Demand vs Savings Plans Dollars - 6 Months</h3>
     </div>
   </div>
+
+  <div class="row">
+    <div class="col">
+      <%= area_chart(merged_chart_data, stacked: false, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <h3>On Demand Hourly - 14 Days</h3>
+    </div>
+  </div>
+  <div class="row mt-3">
+    <div class="col">
+      <%= column_chart(on_demand_usage_hourly_for_chart, legend: "bottom", xtitle: "Datetime", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <h3>On Demand Daily - 14 Days</h3>
+    </div>
+  </div>
+  <div class="row mt-3">
+    <div class="col">
+      <%= column_chart(on_demand_usage_daily, legend: "bottom", xtitle: "Datetime", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+    </div>
+  </div>
+
   <div class="row">
     <div class="col">
       <table class="table">
