@@ -43,6 +43,9 @@ class AnalysesController < ApplicationController
       @analysis.cost_and_usages.build(cost_and_usage_params)
     end
 
+    # Save so we can query for cost_and_usages in cost explorer call
+    @analysis.save!
+
     # compute optimal csp prime with binary search
     @optimize_commit_results = CostExplorer.compute_optimal_csp_prime(
       account: @account,
@@ -65,16 +68,15 @@ class AnalysesController < ApplicationController
 
   def show
     @analysis = @account.analyses.find { |a| a.id === params[:id] }
-    @full_dataset = CostExplorer.get_full_dataset(account: @account, analysis: @analysis)
-
-    # @full_dataset = CostExplorer.get_full_dataset(
-    #   account: @account,
-    #   start_date: @analysis.start_date,
-    #   end_date: @analysis.end_date,
-    #   enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount,
-    #   csp_prime: @analysis.optimal_hourly_commit,
-    #   granularity: @analysis.granularity.upcase,
-    # )
+    @full_dataset = CostExplorer.get_full_dataset(
+      account: @account,
+      analysis: @analysis,
+      start_date: @analysis.start_date,
+      end_date: @analysis.end_date,
+      enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount,
+      csp_prime: @analysis.optimal_hourly_commit,
+      granularity: @analysis.granularity.upcase,
+    )
 
     last_ninety_days_cost_and_usage = CostExplorer.get_cost_and_usage(account: @account, start_date: Time.now.utc - 90.days, end_date: Time.now.utc, filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER, granularity: "DAILY")
     @last_ninety_days = GraphHelpers.format_cost_and_usage_for_chart(last_ninety_days_cost_and_usage)

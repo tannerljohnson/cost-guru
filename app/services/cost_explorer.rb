@@ -21,16 +21,17 @@ class CostExplorer
         new(account: account, start_date: start_date, end_date: end_date, granularity: granularity).get_savings_plans_coverage_and_utilization
     end
 
-    def self.get_full_dataset(account:, start_date:, end_date:, enterprise_cross_service_discount:, csp_prime:, granularity:)
-        new(account: account, start_date: start_date, end_date: end_date, enterprise_cross_service_discount: enterprise_cross_service_discount, granularity: granularity).get_full_dataset(csp_prime)
+    def self.get_full_dataset(account:, analysis:, start_date:, end_date:, enterprise_cross_service_discount:, csp_prime:, granularity:)
+        new(account: account, analysis: analysis, start_date: start_date, end_date: end_date, enterprise_cross_service_discount: enterprise_cross_service_discount, granularity: granularity).get_full_dataset(csp_prime)
     end
 
-    def self.compute_optimal_csp_prime(account:, start_date:, end_date:, enterprise_cross_service_discount:, granularity:)
-        new(account: account, start_date: start_date, end_date: end_date, enterprise_cross_service_discount: enterprise_cross_service_discount, granularity: granularity).compute_optimal_csp_prime
+    def self.compute_optimal_csp_prime(account:, analysis:, start_date:, end_date:, enterprise_cross_service_discount:, granularity:)
+        new(account: account, analysis: analysis, start_date: start_date, end_date: end_date, enterprise_cross_service_discount: enterprise_cross_service_discount, granularity: granularity).compute_optimal_csp_prime
     end
 
-    def initialize(account:, start_date: nil, end_date: nil, enterprise_cross_service_discount: nil, granularity: "DAILY", filter: nil, group_by: nil, metrics: "NetAmortizedCost")
+    def initialize(account:, analysis: nil, start_date: nil, end_date: nil, enterprise_cross_service_discount: nil, granularity: "DAILY", filter: nil, group_by: nil, metrics: "NetAmortizedCost")
         @account = account
+        @analysis = analysis
         @start_date = granularity == "HOURLY" ? start_date&.strftime(HOUR_FORMAT_STR) : start_date&.strftime(DAY_FORMAT_STR)
         @end_date = granularity == "HOURLY" ? end_date&.strftime(HOUR_FORMAT_STR) : end_date&.strftime(DAY_FORMAT_STR)
         @enterprise_cross_service_discount = enterprise_cross_service_discount
@@ -43,6 +44,7 @@ class CostExplorer
     private_class_method :new
 
     attr_reader :account,
+        :analysis,
         :client,
         :start_date,
         :end_date,
@@ -51,7 +53,9 @@ class CostExplorer
         :filter,
         :granularity,
         :group_by,
-        :metrics
+        :metrics,
+        :csp_eligible_cost_and_usages,
+        :savings_plans_cost_and_usages
 
     # [
     #   {
@@ -117,6 +121,10 @@ class CostExplorer
         end
 
         results
+    end
+
+    def csp_eligible_cost_and_usages
+        @csp_eligible_cost_and_usages ||= analysis.present? ? analysis.cost_and_usages.where(filter: "csp_eligible").order(:start).pluck(:total) : []
     end
 
     def get_cost_summary
@@ -187,15 +195,14 @@ class CostExplorer
         high = 10_000.0
         epsilon = 1e-3
         data_points = []
-        on_demand_post_discount_cache = get_cost_and_usage({ filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER }).map { |result_by_time| result_by_time[:total] }
 
         while (high - low) > epsilon
             puts "Running binary search #{low} to #{high}"
             mid1 = low + (high - low) / 3
             mid2 = high - (high - low) / 3
 
-            mid1_savings = get_monthly_savings_for_dataset(get_full_dataset(mid1, on_demand_post_discount_cache))
-            mid2_savings = get_monthly_savings_for_dataset(get_full_dataset(mid2, on_demand_post_discount_cache))
+            mid1_savings = get_monthly_savings_for_dataset(get_full_dataset(mid1))
+            mid2_savings = get_monthly_savings_for_dataset(get_full_dataset(mid2))
             data_points << [mid1, mid1_savings]
             data_points << [mid2, mid2_savings]
 
@@ -207,7 +214,7 @@ class CostExplorer
         end
 
         optimal = (low + high) / 2
-        optimal_savings = get_monthly_savings_for_dataset(get_full_dataset(optimal, on_demand_post_discount_cache))
+        optimal_savings = get_monthly_savings_for_dataset(get_full_dataset(optimal))
         data_points << [optimal, optimal_savings]
         sorted_data_points = data_points.sort_by { |data| data[0] }
 
@@ -227,8 +234,7 @@ class CostExplorer
         (dataset.sum { |row| row[:savings] } * AVG_DAYS_IN_MONTH / dataset.count).round(2)
     end
 
-    def get_full_dataset(csp_prime_hourly, on_demand_post_discount_cache = nil)
-        # TODO: Support hourly granularity
+    def get_full_dataset(csp_prime_hourly)
         csp_prime_for_time_unit = case granularity
         when "HOURLY"
             csp_prime_hourly
@@ -238,10 +244,8 @@ class CostExplorer
             csp_prime_hourly * 24 * AVG_DAYS_IN_MONTH
         end
 
-        # csp_prime_daily = csp_prime_hourly * 24
         csp_prime_in_on_demand = csp_prime_for_time_unit / (1 - CSP_DISCOUNT_RATE)
-        on_demand_post_discount = on_demand_post_discount_cache || get_cost_and_usage({ filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER }).map { |result_by_time| result_by_time[:total] }
-        savings_plans = get_compute_savings_plan_spending
+        on_demand_post_discount = csp_eligible_cost_and_usages
 
         date_rows = case granularity
         when "HOURLY"
@@ -264,7 +268,7 @@ class CostExplorer
 
         rows = date_rows.each_with_index.map do |date, i|
             on_demand_post_discount_unit = on_demand_post_discount[i].to_f
-            savings_plans_unit = savings_plans[i].to_f
+            savings_plans_unit = savings_plans_cost_and_usages[i].to_f
             on_demand_covered_by_csp_unit = savings_plans_unit / (1 - CSP_DISCOUNT_RATE)
             on_demand_pre_discount_unit = on_demand_post_discount_unit / (1 - (enterprise_cross_service_discount / 100))
             csp_prime_plus_csp_in_on_demand = savings_plans_unit + csp_prime_in_on_demand
@@ -342,22 +346,24 @@ class CostExplorer
         }
     end
 
-    def get_compute_savings_plan_spending
-        # Make the API call to get Compute Savings Plan utilization
-        response = client.get_savings_plans_utilization({
-            time_period: {
-                start: start_date,
-                end: end_date
-            },
-            granularity: granularity
-        })
+    def savings_plans_cost_and_usages
+        @savings_plans_cost_and_usages ||= begin
+            # Make the API call to get Compute Savings Plan utilization
+            response = client.get_savings_plans_utilization({
+                time_period: {
+                    start: start_date,
+                    end: end_date
+                },
+                granularity: granularity
+            })
 
-        # Extract and return the spending data
-        response.savings_plans_utilizations_by_time.map do |data|
-            apply_enterprise_discount(data.utilization.total_commitment.to_f)
+            # Extract and return the spending data
+            response.savings_plans_utilizations_by_time.map do |data|
+                apply_enterprise_discount(data.utilization.total_commitment.to_f)
+            end
         end
     end
-
+    
     def apply_enterprise_discount(amount)
         amount * (1 - (enterprise_cross_service_discount / 100))
     end
