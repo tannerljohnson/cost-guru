@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2023_12_17_225940) do
+ActiveRecord::Schema[7.1].define(version: 2023_12_23_145357) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -65,6 +65,16 @@ ActiveRecord::Schema[7.1].define(version: 2023_12_17_225940) do
     t.string "granularity", default: "daily", null: false
     t.jsonb "chart_data", default: {}, null: false
     t.index ["account_id"], name: "index_analyses_on_account_id"
+  end
+
+  create_table "cost_and_usages", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "start", null: false
+    t.uuid "analysis_id", null: false
+    t.string "filter", null: false
+    t.float "total", default: 0.0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["analysis_id"], name: "index_cost_and_usages_on_analysis_id"
   end
 
   create_table "revenue_months", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

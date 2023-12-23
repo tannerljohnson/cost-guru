@@ -15,18 +15,19 @@
 #
 class Analysis < ApplicationRecord
     belongs_to :account
+    has_many :cost_and_usages, dependent: :destroy
     default_scope { order(created_at: :desc) }
 
     GRANULARITY_OPTIONS = [
         'DAILY',
         'HOURLY',
-        # 'monthly'
     ]
 
 
     def recompute_optimal_hourly_commit!
         optimal_hourly = CostExplorer.compute_optimal_csp_prime(
             account: self.account,
+            analysis: self,
             start_date: self.start_date,
             end_date: self.end_date,
             enterprise_cross_service_discount: self.enterprise_cross_service_discount,
