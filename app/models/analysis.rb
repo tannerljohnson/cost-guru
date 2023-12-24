@@ -19,10 +19,10 @@ class Analysis < ApplicationRecord
     default_scope { order(created_at: :desc) }
 
     GRANULARITY_OPTIONS = [
-        'DAILY',
-        'HOURLY',
+      Constants::DAILY,
+      Constants::HOURLY,
     ]
-
+    validate :hourly_must_be_14_days_max
 
     def recompute_optimal_hourly_commit!
         optimal_hourly = CostExplorer.compute_optimal_csp_prime(
@@ -35,5 +35,13 @@ class Analysis < ApplicationRecord
         )
         self.optimal_hourly_commit = optimal_hourly
         self.save!
+    end
+
+    private
+
+    def hourly_must_be_14_days_max
+        if granularity == Constants::HOURLY && start_date < (Time.now.utc - 14.days).beginning_of_day
+            errors.add(:start_date, "Start date is too old for hourly, the max supported days for hourly granularity is 14 days")
+        end
     end
 end

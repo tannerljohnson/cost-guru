@@ -17,10 +17,6 @@ class CostExplorer
         new(account: account).get_compute_savings_plans_inventory
     end
 
-    def self.get_savings_plans_coverage_and_utilization(account:, start_date:, end_date:, granularity: "DAILY")
-        new(account: account, start_date: start_date, end_date: end_date, granularity: granularity).get_savings_plans_coverage_and_utilization
-    end
-
     def self.get_full_dataset(account:, analysis:, start_date:, end_date:, enterprise_cross_service_discount:, csp_prime:, granularity:)
         new(account: account, analysis: analysis, start_date: start_date, end_date: end_date, enterprise_cross_service_discount: enterprise_cross_service_discount, granularity: granularity).get_full_dataset(csp_prime)
     end
@@ -124,27 +120,42 @@ class CostExplorer
     end
 
     def csp_eligible_cost_and_usages
-        @csp_eligible_cost_and_usages ||= analysis.present? ? analysis.cost_and_usages.where(filter: "csp_eligible").order(:start).pluck(:total) : []
+        @csp_eligible_cost_and_usages ||= analysis.nil? ? [] : analysis.cost_and_usages.where(filter: "csp_eligible").order(:start).pluck(:total)
     end
 
     def get_cost_summary
         today = Time.now.utc
-        start_of_month = today.beginning_of_month.strftime(DAY_FORMAT_STR)
-        end_of_month = (today.end_of_month + 1).strftime(DAY_FORMAT_STR)
+        start_of_month = today.beginning_of_month
+        end_of_month = today.end_of_month + 1.day
 
         {
-            this_month_current_by_day: get_cost_and_usage({
-                filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
+            this_month_current_by_day: CostAndUsageFetcher.fetch(
+                account: account,
                 start_date: start_of_month,
-                end_date: today.strftime(DAY_FORMAT_STR)
-            }),
-            this_month_forecast_by_day: get_this_month_forecast_by_day,
-            this_month_current_services_to_ignore: get_cost_and_usage({
+                end_date: today,
+                granularity: granularity,
+                filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
+                group_by: group_by,
+                metrics: metrics
+            ),
+            this_month_forecast_by_day: # +1 due to GMT
+              CostForecastFetcher.fetch(
+                account: account,
+                start_date: Time.now.utc,
+                end_date: Time.now.utc.end_of_month + 1.day,
+                filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
+                granularity: Constants::DAILY,
+                metrics: ['NET_AMORTIZED_COST']
+              ),
+            this_month_current_services_to_ignore: CostAndUsageFetcher.fetch(
+                account: account,
                 start_date: start_of_month,
                 end_date: end_of_month,
+                granularity: granularity,
                 filter: Constants::IGNORED_SERVICES_FOR_FORECAST_FILTER,
-                group_by: "SERVICE"
-            })
+                group_by: Constants::SERVICE,
+                metrics: metrics
+            )
         }
     end
 
@@ -162,31 +173,6 @@ class CostExplorer
             filter: Constants::IGNORED_SERVICES_FOR_FORECAST_FILTER,
             group_by: "SERVICE"
         })
-    end
-
-    def get_this_month_forecast_by_day
-        # +1 due to GMT
-        today = Time.now.utc
-        end_of_month = today.end_of_month + 1
-
-        response = client.get_cost_forecast({
-            time_period: {
-                start: today.strftime(DAY_FORMAT_STR),
-                end: end_of_month.strftime(DAY_FORMAT_STR)
-            },
-            filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
-            granularity: 'DAILY',
-            metric: 'NET_AMORTIZED_COST'
-        })
-
-
-        response.forecast_results_by_time.map do |result|
-            {
-                start: result.time_period.start,
-                total: result.mean_value.to_f.round(2),
-                groups: []
-            }
-        end
     end
 
     def compute_optimal_csp_prime
@@ -236,38 +222,38 @@ class CostExplorer
 
     def get_full_dataset(csp_prime_hourly)
         csp_prime_for_time_unit = case granularity
-        when "HOURLY"
-            csp_prime_hourly
-        when "DAILY"
-            csp_prime_hourly * 24
-        else
-            csp_prime_hourly * 24 * AVG_DAYS_IN_MONTH
-        end
+            when Constants::HOURLY
+                csp_prime_hourly
+            when Constants::DAILY
+                csp_prime_hourly * 24
+            when Constants::MONTHLY
+                csp_prime_hourly * 24 * AVG_DAYS_IN_MONTH
+            else
+                raise "Invalid granularity #{granularity}"
+            end
 
         csp_prime_in_on_demand = csp_prime_for_time_unit / (1 - CSP_DISCOUNT_RATE)
-        on_demand_post_discount = csp_eligible_cost_and_usages
-
         date_rows = case granularity
-        when "HOURLY"
-            start_datetime = DateTime.parse(start_date)
-            end_datetime = DateTime.parse(end_date)
+            when Constants::HOURLY
+                start_datetime = DateTime.parse(start_date)
+                end_datetime = DateTime.parse(end_date)
 
-            datetimes = []
-            current_datetime = start_datetime
-            while current_datetime < end_datetime
-                datetimes << current_datetime
-                current_datetime += 1.hour
+                datetimes = []
+                current_datetime = start_datetime
+                while current_datetime < end_datetime
+                    datetimes << current_datetime
+                    current_datetime += 1.hour
+                end
+                datetimes
+            when Constants::DAILY
+                (Date.parse(start_date)...Date.parse(end_date)).to_a
+            else
+                # TODO implement monthly? maybe.
+                []
             end
-            datetimes
-        when "DAILY"
-            (Date.parse(start_date)...Date.parse(end_date)).to_a
-        else
-            # TODO implement monthly? maybe.
-            []
-        end
 
         rows = date_rows.each_with_index.map do |date, i|
-            on_demand_post_discount_unit = on_demand_post_discount[i].to_f
+            on_demand_post_discount_unit = csp_eligible_cost_and_usages[i].to_f
             savings_plans_unit = savings_plans_cost_and_usages[i].to_f
             on_demand_covered_by_csp_unit = savings_plans_unit / (1 - CSP_DISCOUNT_RATE)
             on_demand_pre_discount_unit = on_demand_post_discount_unit / (1 - (enterprise_cross_service_discount / 100))
@@ -298,83 +284,30 @@ class CostExplorer
         rows
     end
 
-    def get_compute_savings_plans_inventory
-        # TODO: Add describe*, other read for savingsplan*, elasticache, rds in notion labs
-        # Also might need it for other stuff
-        # Need to instantiate a client for each
-        # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/ElastiCache/Client.html#describe_reserved_cache_nodes-instance_method
-        # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SavingsPlans/Client.html#describe_savings_plans-instance_method
-        # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/RDS/Client.html#describe_reserved_db_instances-instance_method
-        response = savings_plans_client.describe_savings_plans
-        response.map do |savings_plan|
-            {
-                id: savings_plan.savings_plan_id,
-                type: savings_plan.savings_plan_type,
-                commitment: savings_plan.commitment.amount,
-                start_date: savings_plan.start,
-                end_date: savings_plan.end,
-            }
-        end
-    end
-
-    def get_savings_plans_coverage_and_utilization
-        utilization_response = client.get_savings_plans_utilization({
-            time_period: {
-                start: start_date,
-                end: end_date
-            },
-            granularity: granularity
-        })
-        utilization_data = utilization_response.savings_plans_utilizations_by_time.map do |data|
-            [data.time_period.start, data.utilization.utilization_percentage.to_f]
-        end
-
-        coverage_response = client.get_savings_plans_coverage({
-            time_period: {
-                start: start_date,
-                end: end_date
-            },
-            granularity: granularity
-        })
-        coverage_data = coverage_response.savings_plans_coverages.map do |data|
-            [data.time_period.start, data.coverage.coverage_percentage.to_f.round(2)]
-        end
-
-        {
-            coverage: coverage_data,
-            utilization: utilization_data
-        }
-    end
+    # def get_compute_savings_plans_inventory
+    #     # TODO: Add describe*, other read for savingsplan*, elasticache, rds in notion labs
+    #     # Also might need it for other stuff
+    #     # Need to instantiate a client for each
+    #     # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/ElastiCache/Client.html#describe_reserved_cache_nodes-instance_method
+    #     # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SavingsPlans/Client.html#describe_savings_plans-instance_method
+    #     # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/RDS/Client.html#describe_reserved_db_instances-instance_method
+    #     response = savings_plans_client.describe_savings_plans
+    #     response.map do |savings_plan|
+    #         {
+    #             id: savings_plan.savings_plan_id,
+    #             type: savings_plan.savings_plan_type,
+    #             commitment: savings_plan.commitment.amount,
+    #             start_date: savings_plan.start,
+    #             end_date: savings_plan.end,
+    #         }
+    #     end
+    # end
 
     def savings_plans_cost_and_usages
-        @savings_plans_cost_and_usages ||= begin
-            # Make the API call to get Compute Savings Plan utilization
-            response = client.get_savings_plans_utilization({
-                time_period: {
-                    start: start_date,
-                    end: end_date
-                },
-                granularity: granularity
-            })
-
-            # Extract and return the spending data
-            response.savings_plans_utilizations_by_time.map do |data|
-                apply_enterprise_discount(data.utilization.total_commitment.to_f)
-            end
-        end
+        @savings_plans_cost_and_usage ||= begin
+                                              analysis.nil? ? [] : analysis.cost_and_usages.where(filter: "csp_payment").order(:start).pluck(:total)
+                                          end
     end
-    
-    def apply_enterprise_discount(amount)
-        amount * (1 - (enterprise_cross_service_discount / 100))
-    end
-
-    def savings_plans_client
-        return unless account.is_connected?
-        Aws.config.update({ region: 'us-west-2' })
-
-        @savings_plans_client ||= Aws::SavingsPlans::Client.new(credentials: get_iam_credentials)
-    end
-
     def initialize_client
         return unless account.is_connected?
         Aws.config.update({ region: 'us-west-2' })

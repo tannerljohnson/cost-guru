@@ -1,4 +1,31 @@
 class Constants
+  DAY_FORMAT_STR = '%Y-%m-%d'.freeze
+  HOUR_FORMAT_STR = '%Y-%m-%dT%H:%M:%SZ'.freeze
+
+  GRANULARITIES = [
+    DAILY = "DAILY",
+    HOURLY = "HOURLY",
+    MONTHLY = "MONTHLY"
+  ].freeze
+
+  GROUP_BY_OPTIONS = [
+    SERVICE = "SERVICE"
+  ].freeze
+
+  METRICS = [
+    NET_AMORTIZED_COST = "NetAmortizedCost"
+  ].freeze
+
+  CLIENT_TYPES = [
+    COST_EXPLORER = "CostExplorer",
+    STS = "STS"
+  ].freeze
+
+  CLIENT_CLASS_MAPPINGS = {
+    COST_EXPLORER => Aws::CostExplorer::Client,
+    STS => Aws::STS::Client
+  }
+
   USAGE_TYPES = {
     TOP_DATA_TRANSFER: [
       "USW2-DataTransfer-Out-Bytes",

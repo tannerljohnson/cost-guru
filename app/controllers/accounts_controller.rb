@@ -44,29 +44,28 @@ class AccountsController < ApplicationController
           account: @account,
           start_date: start_date,
           end_date: end_date,
-          granularity: "DAILY"
+          granularity: Constants::DAILY
         }
 
+        # TODO: figure out how to do more async
+        @cost_summary = CostExplorer.get_cost_summary(account: @account)
+        @csp_coverage = SavingsPlansFetcher.fetch_coverage(**base_request_params)
+        @csp_utilization = SavingsPlansFetcher.fetch_utilization(**base_request_params)
         Async do |task|
           task.async {
-            @on_demand_usage = CostExplorer.get_cost_and_usage(**base_request_params,  filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER)
+            @on_demand_usage = CostAndUsageFetcher.fetch(**base_request_params, filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER)
           }
           task.async {
-            @csp_usage = CostExplorer.get_cost_and_usage(**base_request_params, filter: Constants::CSP_ONLY_USAGE_FILTER)
+            @csp_usage = CostAndUsageFetcher.fetch(**base_request_params, filter: Constants::CSP_ONLY_USAGE_FILTER)
           }
           task.async {
-            @cost_summary = CostExplorer.get_cost_summary(account: @account)
+            @historical_usage_core = CostAndUsageFetcher.fetch(**base_request_params, filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER, group_by: Constants::SERVICE, granularity: Constants::MONTHLY)
           }
           task.async {
-            @csp_data = CostExplorer.get_savings_plans_coverage_and_utilization(**base_request_params)
-          }
-          task.async {
-            @historical_usage_core = CostExplorer.get_cost_and_usage(**base_request_params, filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER, group_by: "SERVICE", granularity: "MONTHLY")
-          }
-          task.async {
-            @historical_usage_non_core = CostExplorer.get_cost_and_usage(**base_request_params, filter: Constants::IGNORED_SERVICES_ONLY_FILTER, group_by: "SERVICE", granularity: "MONTHLY")
+            @historical_usage_non_core = CostAndUsageFetcher.fetch(**base_request_params, filter: Constants::IGNORED_SERVICES_ONLY_FILTER, group_by: Constants::SERVICE, granularity: Constants::MONTHLY)
           }
         end
+
     end
 
     private

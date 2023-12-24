@@ -7,11 +7,16 @@ class AnalysesController < ApplicationController
       account: @account,
       start_date: (Time.now.utc - 6.months).beginning_of_month,
       end_date: Time.now.utc,
-      granularity: "DAILY"
+      granularity: Constants::DAILY
     }
-    @on_demand_usage = CostExplorer.get_cost_and_usage(**request_params, filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER)
-    @csp_usage = CostExplorer.get_cost_and_usage(**request_params, filter: Constants::CSP_ONLY_USAGE_FILTER)
-    @on_demand_usage_hourly = CostExplorer.get_cost_and_usage(**request_params, start_date: (Time.now.utc - 14.days).beginning_of_day, granularity: "HOURLY", filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER)
+    @on_demand_usage = CostAndUsageFetcher.fetch(**request_params, filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER)
+    @csp_usage = CostAndUsageFetcher.fetch(**request_params, filter: Constants::CSP_ONLY_USAGE_FILTER)
+    @on_demand_usage_hourly = CostAndUsageFetcher.fetch(
+      **request_params,
+      start_date: (Time.now.utc - 14.days).beginning_of_day,
+      granularity: Constants::HOURLY,
+      filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER
+    )
     @analyses = @account.analyses.order(created_at: :desc)
   end
 
@@ -25,26 +30,43 @@ class AnalysesController < ApplicationController
 
   def create
     @analysis = @account.analyses.new(analysis_params)
+    unless @analysis.save
+      render :new, status: :unprocessable_entity
+      return
+    end
 
-    csp_eligible_cost_and_usages = CostExplorer.get_cost_and_usage(
+    CostAndUsageFetcher.fetch(
       account: @account,
       start_date: @analysis.start_date,
       end_date: @analysis.end_date,
       granularity: @analysis.granularity,
       filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER
-    )
-
-    csp_eligible_cost_and_usages.each do |cost_and_usage|
-      cost_and_usage_params = {
+    ).each do |cost_and_usage|
+      @analysis.cost_and_usages.build(
         filter: "csp_eligible",
         start: cost_and_usage[:start],
         total: cost_and_usage[:total]
-      }
-      @analysis.cost_and_usages.build(cost_and_usage_params)
+      )
+    end
+
+    SavingsPlansFetcher.fetch_utilization(
+      account: @account,
+      start_date: @analysis.start_date,
+      end_date: @analysis.end_date,
+      granularity: @analysis.granularity,
+      enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount
+    ).each do |savings_plan_cost_and_usage|
+      @analysis.cost_and_usages.build(
+        filter: "csp_payment",
+        start: savings_plan_cost_and_usage[:start],
+        total: savings_plan_cost_and_usage[:total]
+      )
     end
 
     # Save so we can query for cost_and_usages in cost explorer call
-    @analysis.save!
+    unless @analysis.save
+      render :new, status: :unprocessable_entity
+    end
 
     # compute optimal csp prime with binary search
     @optimize_commit_results = CostExplorer.compute_optimal_csp_prime(
@@ -78,7 +100,13 @@ class AnalysesController < ApplicationController
       granularity: @analysis.granularity.upcase,
     )
 
-    last_ninety_days_cost_and_usage = CostExplorer.get_cost_and_usage(account: @account, start_date: Time.now.utc - 90.days, end_date: Time.now.utc, filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER, granularity: "DAILY")
+    last_ninety_days_cost_and_usage = CostAndUsageFetcher.fetch(
+      account: @account,
+      start_date: Time.now.utc - 90.days,
+      end_date: Time.now.utc,
+      filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
+      granularity: Constants::DAILY
+    )
     @last_ninety_days = GraphHelpers.format_cost_and_usage_for_chart(last_ninety_days_cost_and_usage)
   end
 

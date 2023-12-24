@@ -169,7 +169,10 @@
   </div>
   <div class="row mt-2">
     <div class="col">
-      <%= area_chart(@csp_data[:coverage], xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
+      <%
+        csp_coverage_chart_data = @csp_coverage.map { |coverage| [coverage[:start], coverage[:percentage]] }
+      %>
+      <%= area_chart(csp_coverage_chart_data, xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
     </div>
   </div>
   <div class="row mt-5 text-center">
@@ -179,7 +182,10 @@
   </div>
   <div class="row my-2">
     <div class="col">
-      <%= area_chart(@csp_data[:utilization], xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
+      <%
+        csp_utilization_chart_data = @csp_utilization.map { |utilization| [utilization[:start], utilization[:percentage]] }
+      %>
+      <%= area_chart(csp_utilization_chart_data, xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
     </div>
   </div>
 </section>
