@@ -1,41 +1,56 @@
 class CostExplorer
     # This is for a 3-year no upfront commitment.
     CSP_DISCOUNT_RATE = 0.512
-    DAY_FORMAT_STR = '%Y-%m-%d'.freeze
-    HOUR_FORMAT_STR = '%Y-%m-%dT%H:%M:%SZ'.freeze
     AVG_DAYS_IN_MONTH = 30.4
 
-    def self.get_cost_and_usage(account:, start_date:, end_date:, granularity: "DAILY", filter: nil, group_by: nil, metrics: "NetAmortizedCost")
-        new(account: account, start_date: start_date, end_date: end_date, granularity: granularity, filter: filter, group_by: group_by, metrics: metrics).get_cost_and_usage
+    def self.get_full_dataset(
+      account:,
+      analysis:,
+      start_date:,
+      end_date:,
+      enterprise_cross_service_discount:,
+      csp_prime:,
+      granularity:
+    )
+        new(
+          account: account,
+          analysis: analysis,
+          start_date: start_date,
+          end_date: end_date,
+          enterprise_cross_service_discount: enterprise_cross_service_discount,
+          granularity: granularity
+        ).get_full_dataset(csp_prime)
     end
 
-    def self.get_cost_summary(account:)
-        new(account: account).get_cost_summary
-    end
-
-    def self.get_compute_savings_plans_inventory(account:)
-        new(account: account).get_compute_savings_plans_inventory
-    end
-
-    def self.get_full_dataset(account:, analysis:, start_date:, end_date:, enterprise_cross_service_discount:, csp_prime:, granularity:)
-        new(account: account, analysis: analysis, start_date: start_date, end_date: end_date, enterprise_cross_service_discount: enterprise_cross_service_discount, granularity: granularity).get_full_dataset(csp_prime)
-    end
-
-    def self.compute_optimal_csp_prime(account:, analysis:, start_date:, end_date:, enterprise_cross_service_discount:, granularity:)
-        new(account: account, analysis: analysis, start_date: start_date, end_date: end_date, enterprise_cross_service_discount: enterprise_cross_service_discount, granularity: granularity).compute_optimal_csp_prime
+    def self.compute_optimal_csp_prime(
+      account:,
+      analysis:,
+      start_date:,
+      end_date:,
+      enterprise_cross_service_discount:,
+      granularity:
+    )
+        new(
+          account: account,
+          analysis: analysis,
+          start_date: start_date,
+          end_date: end_date,
+          enterprise_cross_service_discount: enterprise_cross_service_discount,
+          granularity: granularity
+        ).compute_optimal_csp_prime
     end
 
     def initialize(account:, analysis: nil, start_date: nil, end_date: nil, enterprise_cross_service_discount: nil, granularity: "DAILY", filter: nil, group_by: nil, metrics: "NetAmortizedCost")
         @account = account
         @analysis = analysis
-        @start_date = granularity == "HOURLY" ? start_date&.strftime(HOUR_FORMAT_STR) : start_date&.strftime(DAY_FORMAT_STR)
-        @end_date = granularity == "HOURLY" ? end_date&.strftime(HOUR_FORMAT_STR) : end_date&.strftime(DAY_FORMAT_STR)
+        date_str_format = granularity == Constants::HOURLY ? Constants::HOUR_FORMAT_STR : Constants::DAY_FORMAT_STR
+        @start_date = start_date&.strftime(date_str_format)
+        @end_date = end_date&.strftime(date_str_format)
         @enterprise_cross_service_discount = enterprise_cross_service_discount
         @granularity = granularity
         @filter = filter
         @group_by = group_by
         @metrics = metrics
-        initialize_client
     end
     private_class_method :new
 
@@ -52,128 +67,6 @@ class CostExplorer
         :metrics,
         :csp_eligible_cost_and_usages,
         :savings_plans_cost_and_usages
-
-    # [
-    #   {
-    #   :start=>"2023-12-17",
-    #   :total=>52586.96,
-    #   :groups=> [
-    #       ["AWS Cloud Map", 0.0],
-    #       ["AWS CloudTrail", 0.0],
-    #       ["AWS CodeArtifact", 0.0]
-    #     ]
-    #   }
-    # ]
-    #
-    # OR
-    #
-    #  [{:start=>"2023-12-14", :total=>73540.25, :groups=>[]},
-    #  {:start=>"2023-12-15", :total=>69740.66, :groups=>[]},
-    #  {:start=>"2023-12-16", :total=>54981.15, :groups=>[]},
-    #  {:start=>"2023-12-17", :total=>52586.98, :groups=>[]}]
-    def get_cost_and_usage(overrides = {})
-        group_by_key = overrides[:group_by] || group_by
-        start_date_for_query = overrides[:start_date] || start_date
-        end_date_for_query = overrides[:end_date] || end_date
-        request_body = {
-            time_period: {
-              start: start_date_for_query,
-              end: end_date_for_query
-            },
-            filter: overrides[:filter] || filter,
-            granularity: overrides[:granularity] || granularity,
-            group_by: group_by_key ? [
-                {
-                  type: 'DIMENSION',
-                  key: group_by_key
-                }
-            ] : nil,
-            metrics: [overrides[:metrics] || metrics]
-        }
-        response = client.get_cost_and_usage(request_body)
-        results_hash = {}
-        filtered_results = response.results_by_time.filter do |res|
-            res.time_period.start < end_date_for_query
-        end
-        results = []
-        filtered_results.map do |result_by_time|
-            groups = result_by_time.groups.map do |group|
-                [group.keys.first, group.metrics[metrics].amount.to_f.round(2)]
-            end
-
-            total = 0.0
-            if groups.any?
-                total = groups.sum { |group| group[1] }
-            else
-                total = result_by_time.total[metrics].amount.to_f.round(2)
-            end
-
-            res = {
-                start: result_by_time.time_period.start,
-                total: total,
-                groups: groups
-            }
-            results << res
-        end
-
-        results
-    end
-
-    def csp_eligible_cost_and_usages
-        @csp_eligible_cost_and_usages ||= analysis.nil? ? [] : analysis.cost_and_usages.where(filter: "csp_eligible").order(:start).pluck(:total)
-    end
-
-    def get_cost_summary
-        today = Time.now.utc
-        start_of_month = today.beginning_of_month
-        end_of_month = today.end_of_month + 1.day
-
-        {
-            this_month_current_by_day: CostAndUsageFetcher.fetch(
-                account: account,
-                start_date: start_of_month,
-                end_date: today,
-                granularity: granularity,
-                filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
-                group_by: group_by,
-                metrics: metrics
-            ),
-            this_month_forecast_by_day: # +1 due to GMT
-              CostForecastFetcher.fetch(
-                account: account,
-                start_date: Time.now.utc,
-                end_date: Time.now.utc.end_of_month + 1.day,
-                filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
-                granularity: Constants::DAILY,
-                metrics: ['NET_AMORTIZED_COST']
-              ),
-            this_month_current_services_to_ignore: CostAndUsageFetcher.fetch(
-                account: account,
-                start_date: start_of_month,
-                end_date: end_of_month,
-                granularity: granularity,
-                filter: Constants::IGNORED_SERVICES_FOR_FORECAST_FILTER,
-                group_by: Constants::SERVICE,
-                metrics: metrics
-            )
-        }
-    end
-
-    def get_this_month_current_ignored_services
-        today = Time.now.utc
-        start_of_month = today.beginning_of_month
-        end_of_month = today.end_of_month + 1
-
-        start_date = start_of_month.strftime(DAY_FORMAT_STR)
-        end_date = end_of_month.strftime(DAY_FORMAT_STR)
-
-        get_cost_and_usage({
-            start_date: start_date,
-            end_date: end_date,
-            filter: Constants::IGNORED_SERVICES_FOR_FORECAST_FILTER,
-            group_by: "SERVICE"
-        })
-    end
 
     def compute_optimal_csp_prime
         # Binary search
@@ -204,13 +97,11 @@ class CostExplorer
         data_points << [optimal, optimal_savings]
         sorted_data_points = data_points.sort_by { |data| data[0] }
 
-        # cut it into even chunks?
-        chunk_size = sorted_data_points.count / 30
         chart_data = sorted_data_points.each_with_index.filter do |data, i|
             i % 4 == 0 && data[1] > -10
         end.map { |d| d[0] }
 
-        return {
+        {
             value: optimal,
             chart_data: chart_data
         }
@@ -252,7 +143,7 @@ class CostExplorer
                 []
             end
 
-        rows = date_rows.each_with_index.map do |date, i|
+        date_rows.each_with_index.map do |date, i|
             on_demand_post_discount_unit = csp_eligible_cost_and_usages[i].to_f
             savings_plans_unit = savings_plans_cost_and_usages[i].to_f
             on_demand_covered_by_csp_unit = savings_plans_unit / (1 - CSP_DISCOUNT_RATE)
@@ -281,8 +172,16 @@ class CostExplorer
                 new_coverage: (100 * csp_prime_plus_csp_in_on_demand / (csp_prime_plus_csp_in_on_demand + on_demand_post_edp_post_csp_prime_unit)).round(2)
             }
         end
-        rows
     end
+
+    def csp_eligible_cost_and_usages
+        @csp_eligible_cost_and_usages ||= analysis.nil? ? [] : analysis.cost_and_usages.where(filter: "csp_eligible").order(:start).pluck(:total)
+    end
+
+    def savings_plans_cost_and_usages
+        @savings_plans_cost_and_usage ||= analysis.nil? ? [] : analysis.cost_and_usages.where(filter: "csp_payment").order(:start).pluck(:total)
+    end
+
 
     # def get_compute_savings_plans_inventory
     #     # TODO: Add describe*, other read for savingsplan*, elasticache, rds in notion labs
@@ -302,43 +201,4 @@ class CostExplorer
     #         }
     #     end
     # end
-
-    def savings_plans_cost_and_usages
-        @savings_plans_cost_and_usage ||= begin
-                                              analysis.nil? ? [] : analysis.cost_and_usages.where(filter: "csp_payment").order(:start).pluck(:total)
-                                          end
-    end
-    def initialize_client
-        return unless account.is_connected?
-        Aws.config.update({ region: 'us-west-2' })
-
-        @client ||= Aws::CostExplorer::Client.new(credentials: get_iam_credentials)
-    end
-
-    def get_iam_credentials
-        # Prefer cross account role connector
-        if account.cross_account_role_connected?
-            credentials = get_temporary_credentials
-        elsif account.iam_connected?
-            credentials = Aws::Credentials.new(account.iam_access_key_id, account.iam_secret_access_key)
-        else
-            raise "Unknown connection"
-        end
-
-        credentials
-    end
-
-    def get_temporary_credentials
-        cost_guru_aws_account_credentials = Aws::Credentials.new(
-            Rails.application.credentials.root_aws_account.sts_assume_role_user.iam_access_key_id,
-            Rails.application.credentials.root_aws_account.sts_assume_role_user.iam_secret_access_key
-        )
-        sts_client = Aws::STS::Client.new(credentials: cost_guru_aws_account_credentials)
-        response = sts_client.assume_role({
-            role_arn: account.role_arn,
-            role_session_name: "STSSession#{account.name.gsub(/\s+/, '')}#{Time.now.to_i}",
-        })
-        # Use the temporary credentials obtained from the response to make AWS Cost Explorer API requests
-        Aws::Credentials.new(response.credentials.access_key_id, response.credentials.secret_access_key, response.credentials.session_token)
-    end
 end

@@ -159,7 +159,7 @@
         csp_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@csp_usage, "Savings Plans")
         merged_chart_data = GraphHelpers.merge_chart_cost_and_usage_data([csp_usage_for_chart, on_demand_usage_for_chart])
       %>
-      <%= area_chart(merged_chart_data, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+      <%= area_chart(merged_chart_data, points: false, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
     </div>
   </div>
   <div class="row mt-5 text-center">
@@ -172,7 +172,7 @@
       <%
         csp_coverage_chart_data = @csp_coverage.map { |coverage| [coverage[:start], coverage[:percentage]] }
       %>
-      <%= area_chart(csp_coverage_chart_data, xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
+      <%= area_chart(csp_coverage_chart_data, points: false, xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
     </div>
   </div>
   <div class="row mt-5 text-center">
@@ -185,7 +185,7 @@
       <%
         csp_utilization_chart_data = @csp_utilization.map { |utilization| [utilization[:start], utilization[:percentage]] }
       %>
-      <%= area_chart(csp_utilization_chart_data, xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
+      <%= area_chart(csp_utilization_chart_data, points: false, xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
     </div>
   </div>
 </section>

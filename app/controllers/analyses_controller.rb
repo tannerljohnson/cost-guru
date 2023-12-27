@@ -90,6 +90,7 @@ class AnalysesController < ApplicationController
 
   def show
     @analysis = @account.analyses.find { |a| a.id === params[:id] }
+    # No remote calls to AWS
     @full_dataset = CostExplorer.get_full_dataset(
       account: @account,
       analysis: @analysis,

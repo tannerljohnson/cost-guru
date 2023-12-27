@@ -20,6 +20,25 @@ class CostAndUsageFetcher < BaseAwsClient
     ).fetch
   end
 
+  # [
+  #   {
+  #   :start=>"2023-12-17",
+  #   :total=>52586.96,
+  #   :groups=> [
+  #       ["AWS Cloud Map", 0.0],
+  #       ["AWS CloudTrail", 0.0],
+  #       ["AWS CodeArtifact", 0.0]
+  #     ]
+  #   }
+  # ]
+  #
+  # OR
+  #
+  #  [{:start=>"2023-12-14", :total=>73540.25, :groups=>[]},
+  #  {:start=>"2023-12-15", :total=>69740.66, :groups=>[]},
+  #  {:start=>"2023-12-16", :total=>54981.15, :groups=>[]},
+  #  {:start=>"2023-12-17", :total=>52586.98, :groups=>[]}]
+
   def fetch
     request_body = {
       time_period: {
