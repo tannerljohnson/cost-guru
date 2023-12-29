@@ -9,8 +9,8 @@ class BusinessMetrics
     end
 
     [{
-      name: "Spend as % of Revenue",
-      data: pct_revenue_data.to_a
-    }]
+       name: "Spend as % of Revenue",
+       data: pct_revenue_data.to_a
+     }]
   end
 end

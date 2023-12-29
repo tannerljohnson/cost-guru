@@ -13,6 +13,7 @@ Rails.application.routes.draw do
     resources :revenue_months, except: [:show]
 
     get 'inventories', to: 'inventories#index'
+    # TODO implement: get 'anomalies', to: 'anomalies#index'
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

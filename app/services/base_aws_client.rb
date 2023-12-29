@@ -24,6 +24,7 @@ class BaseAwsClient
 
   private_class_method :new
   attr_reader :account, :start_date, :end_date, :granularity, :filter, :group_by, :metrics, :client, :client_type, :enterprise_cross_service_discount
+
   def client
     @client ||= begin
                   return unless account.is_connected?

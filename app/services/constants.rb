@@ -887,12 +887,12 @@ class Constants
     AMAZON_TRANSLATE = "Amazon Translate",
     AMAZON_VIRTUAL_PRIVATE_CLOUD = "Amazon Virtual Private Cloud",
     AMAZON_WORKSPACES = "Amazon WorkSpaces",
-    AMAZONCLOUDWATCH_= "AmazonCloudWatch",
+    AMAZONCLOUDWATCH_ = "AmazonCloudWatch",
     APACHE_KAFKA_ON_CONFLUENT_CLOUD_ANNUAL_COMMITS = "Apache Kafka® on Confluent Cloud™ - Annual Commits",
     CIRCLECI_CLOUD_HOSTED_CI_CD = "CircleCI - Cloud-Hosted CI/CD",
     CLOUDWATCH_EVENTS = "CloudWatch Events",
-    CODEBUILD_= "CodeBuild",
-    CODEGURU_= "CodeGuru",
+    CODEBUILD_ = "CodeBuild",
+    CODEGURU_ = "CodeGuru",
     COHERE_RERANK_MODEL_MULTILINGUAL = "Cohere Rerank Model - Multilingual",
     NOTION = "Notion",
     OUT_OF_CYCLE_BILLING_DATATRANSFER = "Out of Cycle Billing - DataTransfer",
@@ -937,22 +937,22 @@ class Constants
 
   CSP_ELIGIBLE_COST_AND_USAGE_FILTER = {
     and: [
-        { dimensions: { key: "PURCHASE_TYPE", values: ["On Demand Instances"] } },
-        {
-            dimensions: {
-                key: "SERVICE",
-                values: [
-                    "Amazon Elastic Compute Cloud - Compute",
-                    "AWS Lambda",
-                    "Amazon Elastic Container Service",
-                    "Amazon Elastic Container Service for Kubernetes",
-                    "Amazon SageMaker"
-                ]
-            }
-        },
-        # Temp solution. Figure out why we can't use wildcard
-        { not: { dimensions: { key: "USAGE_TYPE", values: USAGE_TYPES[:TOP_DATA_TRANSFER] } } }
-        # { not: { dimensions: { key: "USAGE_TYPE", values: ["*Bytes*"] } } }
-      ]
+      { dimensions: { key: "PURCHASE_TYPE", values: ["On Demand Instances"] } },
+      {
+        dimensions: {
+          key: "SERVICE",
+          values: [
+            "Amazon Elastic Compute Cloud - Compute",
+            "AWS Lambda",
+            "Amazon Elastic Container Service",
+            "Amazon Elastic Container Service for Kubernetes",
+            "Amazon SageMaker"
+          ]
+        }
+      },
+      # Temp solution. Figure out why we can't use wildcard
+      { not: { dimensions: { key: "USAGE_TYPE", values: USAGE_TYPES[:TOP_DATA_TRANSFER] } } }
+    # { not: { dimensions: { key: "USAGE_TYPE", values: ["*Bytes*"] } } }
+    ]
   }
 end

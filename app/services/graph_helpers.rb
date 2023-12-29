@@ -101,7 +101,6 @@ class GraphHelpers
       end
     end
 
-
     results = result_hash.map do |usage_key, usage_data|
       {
         name: usage_key,
@@ -134,7 +133,6 @@ class GraphHelpers
       end
     end
     other_usage_data = other_usage_data_hash.to_a
-
 
     filtered_results = results.filter do |res|
       top_usage_keys.include?(res[:name])

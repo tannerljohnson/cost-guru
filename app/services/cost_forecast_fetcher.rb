@@ -23,15 +23,14 @@ class CostForecastFetcher < BaseAwsClient
   def fetch
     puts "✅ REMOTE CALL: get_cost_forecast"
     response = client.get_cost_forecast({
-      time_period: {
-        start: start_date,
-        end: end_date
-      },
-      filter: filter,
-      granularity: granularity,
-      metric: metrics[0]
-    })
-
+                                          time_period: {
+                                            start: start_date,
+                                            end: end_date
+                                          },
+                                          filter: filter,
+                                          granularity: granularity,
+                                          metric: metrics[0]
+                                        })
 
     response.forecast_results_by_time.map do |result|
       {
