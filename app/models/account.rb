@@ -16,45 +16,45 @@
 #  credentials_expire_at :string
 #
 class Account < ApplicationRecord
-    belongs_to :user
-    has_many :analyses, dependent: :destroy
-    has_many :revenue_months, dependent: :destroy
+  belongs_to :user
+  has_many :analyses, dependent: :destroy
+  has_many :revenue_months, dependent: :destroy
 
-    default_scope { order(created_at: :desc) }
+  default_scope { order(created_at: :desc) }
 
-    encrypts :iam_secret_access_key
+  encrypts :iam_secret_access_key
 
-    validate :credentials_must_all_be_set_at_once
+  validate :credentials_must_all_be_set_at_once
 
-    def type
-        'aws'
+  def type
+    'aws'
+  end
+
+  def is_connected?
+    cross_account_role_connected? || iam_connected?
+  end
+
+  def iam_connected?
+    iam_access_key_id && iam_secret_access_key
+  end
+
+  def cross_account_role_connected?
+    role_arn.present?
+  end
+
+  def connection_strategy
+    if cross_account_role_connected?
+      "cross_account_iam_role"
+    elsif iam_connected?
+      "iam_credentials"
     end
+  end
 
-    def is_connected?
-        cross_account_role_connected? || iam_connected?
+  private
+
+  def credentials_must_all_be_set_at_once
+    if credentials_expire_at.present?
+      errors.add(:base, "Credentials must all be set at once") unless session_token.present? && secret_access_key.present? && access_key_id.present?
     end
-
-    def iam_connected?
-        iam_access_key_id && iam_secret_access_key
-    end
-
-    def cross_account_role_connected?
-        role_arn.present?
-    end
-
-    def connection_strategy
-        if cross_account_role_connected?
-            "cross_account_iam_role"
-        elsif iam_connected?
-            "iam_credentials"
-        end
-    end
-
-    private
-
-    def credentials_must_all_be_set_at_once
-        if credentials_expire_at.present?
-            errors.add(:base, "Credentials must all be set at once") unless session_token.present? && secret_access_key.present? && access_key_id.present?
-        end
-    end
+  end
 end

@@ -26,12 +26,10 @@ class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :validatable, 
+         :recoverable, :rememberable, :validatable,
          :omniauthable, omniauth_providers: [:google_oauth2]
 
-
   has_many :accounts, dependent: :destroy
-
 
   def self.from_google(email:, first_name:, last_name:)
     user = User.find_by(email: email)
@@ -50,5 +48,5 @@ class User < ApplicationRecord
     end
 
     user
-  end 
+  end
 end
