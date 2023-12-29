@@ -1,38 +1,38 @@
 <section class="container">
   <div class="row">
-      <div class="col">
-          <h1>New Connector</h1>
-      </div>
+    <div class="col">
+      <h1>New Connector</h1>
+    </div>
   </div>
-  
+
   <div class="row">
-      <div class="col">
+    <div class="col">
       <%= form_with model: @account do |form| %>
         <div class="mb-2">
           <%= form.label :name, { class: "form-label" } %><br>
           <%= form.text_field :name, { class: "form-control" } %>
         </div>
-        
+
         <div class="mb-2">
           <%= form.label :cross_account_role_arn, { class: "form-label" } %><br>
           <%= form.text_field :role_arn, { class: "form-control" } %>
         </div>
-        
+
         <div class="mb-2">
           <%= form.label :iam_access_key_id, { class: "form-label" } %><br>
           <%= form.text_field :iam_access_key_id, { class: "form-control" } %>
         </div>
-        
+
         <div class="mb-3">
           <%= form.label :iam_secret_access_key, { class: "form-label" } %><br>
           <%= form.text_field :iam_secret_access_key, { class: "form-control" } %>
         </div>
 
         <div class="db-flex">
-            <div class="text-end">
-                <a href="<%= accounts_path %>" class="btn btn-primary-outline" data-turbolinks-action="replace">Back</a>
-                <%= form.submit 'Create', class: "btn btn-primary" %>
-            </div>
+          <div class="text-end">
+            <a href="<%= accounts_path %>" class="btn btn-primary-outline" data-turbolinks-action="replace">Back</a>
+            <%= form.submit 'Create', class: "btn btn-primary" %>
+          </div>
         </div>
       <% end %>
     </div>

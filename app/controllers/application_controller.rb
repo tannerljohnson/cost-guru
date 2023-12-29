@@ -12,4 +12,10 @@ class ApplicationController < ActionController::Base
     def after_sign_out_path_for(_)
       new_user_session_path
     end
+
+    private
+    def load_account!
+      @account = current_user.accounts.find { |account| account.id == params[:account_id] }
+      raise "Account not found" unless @account
+    end
 end

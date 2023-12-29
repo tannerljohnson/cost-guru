@@ -45,13 +45,13 @@ class SavingsPlansFetcher < BaseAwsClient
 
   def fetch_utilization
     puts "✅ REMOTE CALL: get_savings_plans_utilization"
-    response =  client.get_savings_plans_utilization({
-                                           time_period: {
-                                             start: start_date,
-                                             end: end_date
-                                           },
-                                           granularity: granularity
-                                         })
+    response = client.get_savings_plans_utilization({
+                                                      time_period: {
+                                                        start: start_date,
+                                                        end: end_date
+                                                      },
+                                                      granularity: granularity
+                                                    })
     response.savings_plans_utilizations_by_time.map do |data|
       {
         start: data.time_period.start,
@@ -64,12 +64,12 @@ class SavingsPlansFetcher < BaseAwsClient
   def fetch_coverage
     puts "✅ REMOTE CALL: get_savings_plans_coverage"
     response = client.get_savings_plans_coverage({
-                                                    time_period: {
-                                                      start: start_date,
-                                                      end: end_date
-                                                    },
-                                                    granularity: granularity
-                                                  })
+                                                   time_period: {
+                                                     start: start_date,
+                                                     end: end_date
+                                                   },
+                                                   granularity: granularity
+                                                 })
     response.savings_plans_coverages.map do |data|
       {
         start: data.time_period.start,

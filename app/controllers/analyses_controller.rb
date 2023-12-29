@@ -124,9 +124,4 @@ class AnalysesController < ApplicationController
   def analysis_params
     params.require(:analysis).permit(:start_date, :end_date, :enterprise_cross_service_discount, :granularity)
   end
-
-  def load_account!
-    @account = current_user.accounts.find { |account| account.id == params[:account_id] }
-    raise "Account not found" unless @account
-  end
 end

@@ -1,57 +1,57 @@
-<% 
-    new_monthly_savings = number_to_currency(
-        @full_dataset.sum { |row| row[:savings] } * 30.4 / @full_dataset.count * (@analysis.granularity == "HOURLY" ? 24 : 1)
-    )
-    new_average_coverage = (@full_dataset.sum { |row| row[:new_coverage] } / @full_dataset.count).round(2)
-    current_average_coverage = (@full_dataset.sum { |row| row[:coverage] } / @full_dataset.count).round(2)
-    new_coverage_delta = (new_average_coverage - current_average_coverage).round(2)
-    last_ninety_days_data = @last_ninety_days[0][:data]
-    last_ninety_total_excluding_analysis_period = last_ninety_days_data.filter { |res| !(res[0] >= @analysis.start_date && res[0] <= @analysis.end_date)  }
-    cost_for_analysis_period = last_ninety_days_data.filter { |res| res[0] >= @analysis.start_date && res[0] <= @analysis.end_date }
-    total_spend_current_for_time_period = @full_dataset.sum { |row| row[:savings_plans] + row[:on_demand_post_discount] }
-    total_spend_new_for_time_period = @full_dataset.sum { |row| row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime] }
-    total_savings_for_time_period = total_spend_current_for_time_period - total_spend_new_for_time_period
-    ninety_day_lookback_chart_data = [
-        {
-            name: 'Last 90 days',
-            data: last_ninety_total_excluding_analysis_period
-        },
-        {
-            name: 'Analysis period',
-            data: cost_for_analysis_period
-        }
-    ]
-    spend_delta_chart_data = [
-        {
-            name: 'Current total spend',
-            data: @full_dataset.map { |row| [row[:date].to_s, row[:savings_plans] + row[:on_demand_post_discount]] }
-        },
-        {
-            name: 'New total spend',
-            data: @full_dataset.map { |row| [row[:date].to_s, row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime]] }
-        }
-    ]
-    spend_different_per_time_period = @full_dataset.map { |row| [row[:date].to_s, row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime] - row[:savings_plans] - row[:on_demand_post_discount]] }
-    spend_difference_per_time_period_chart_data = [
-      {
-        name: 'Overpaid by',
-        data: spend_different_per_time_period.map { |date, spend_delta| spend_delta >= 0 ? [date, spend_delta] : [date, 0] }
-      },
-      {
-        name: 'Saved',
-        data: spend_different_per_time_period.map { |date, spend_delta| spend_delta < 0 ? [date, spend_delta] : [date, 0] }
-      }
-    ]
-    coverage_delta_chart_data = [
-        {
-            name: 'Current Coverage',
-            data: @full_dataset.map { |row| [row[:date].to_s, row[:coverage]] }
-        },
-        {
-            name: 'New Coverage',
-            data: @full_dataset.map { |row| [row[:date].to_s, row[:new_coverage]] }
-        }
-    ]
+<%
+  new_monthly_savings = number_to_currency(
+    @full_dataset.sum { |row| row[:savings] } * 30.4 / @full_dataset.count * (@analysis.granularity == "HOURLY" ? 24 : 1)
+  )
+  new_average_coverage = (@full_dataset.sum { |row| row[:new_coverage] } / @full_dataset.count).round(2)
+  current_average_coverage = (@full_dataset.sum { |row| row[:coverage] } / @full_dataset.count).round(2)
+  new_coverage_delta = (new_average_coverage - current_average_coverage).round(2)
+  last_ninety_days_data = @last_ninety_days[0][:data]
+  last_ninety_total_excluding_analysis_period = last_ninety_days_data.filter { |res| !(res[0] >= @analysis.start_date && res[0] <= @analysis.end_date) }
+  cost_for_analysis_period = last_ninety_days_data.filter { |res| res[0] >= @analysis.start_date && res[0] <= @analysis.end_date }
+  total_spend_current_for_time_period = @full_dataset.sum { |row| row[:savings_plans] + row[:on_demand_post_discount] }
+  total_spend_new_for_time_period = @full_dataset.sum { |row| row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime] }
+  total_savings_for_time_period = total_spend_current_for_time_period - total_spend_new_for_time_period
+  ninety_day_lookback_chart_data = [
+    {
+      name: 'Last 90 days',
+      data: last_ninety_total_excluding_analysis_period
+    },
+    {
+      name: 'Analysis period',
+      data: cost_for_analysis_period
+    }
+  ]
+  spend_delta_chart_data = [
+    {
+      name: 'Current total spend',
+      data: @full_dataset.map { |row| [row[:date].to_s, row[:savings_plans] + row[:on_demand_post_discount]] }
+    },
+    {
+      name: 'New total spend',
+      data: @full_dataset.map { |row| [row[:date].to_s, row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime]] }
+    }
+  ]
+  spend_different_per_time_period = @full_dataset.map { |row| [row[:date].to_s, row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime] - row[:savings_plans] - row[:on_demand_post_discount]] }
+  spend_difference_per_time_period_chart_data = [
+    {
+      name: 'Overpaid by',
+      data: spend_different_per_time_period.map { |date, spend_delta| spend_delta >= 0 ? [date, spend_delta] : [date, 0] }
+    },
+    {
+      name: 'Saved',
+      data: spend_different_per_time_period.map { |date, spend_delta| spend_delta < 0 ? [date, spend_delta] : [date, 0] }
+    }
+  ]
+  coverage_delta_chart_data = [
+    {
+      name: 'Current Coverage',
+      data: @full_dataset.map { |row| [row[:date].to_s, row[:coverage]] }
+    },
+    {
+      name: 'New Coverage',
+      data: @full_dataset.map { |row| [row[:date].to_s, row[:new_coverage]] }
+    }
+  ]
 %>
 <section class="container">
   <div class="row">
@@ -72,7 +72,8 @@
       </div>
 
       <div>
-        New average <%= @analysis.granularity.downcase %> coverage: <%= new_average_coverage %>% (<%= new_coverage_delta > 0 ? "+" : "" %><%= new_coverage_delta %>%)
+        New average <%= @analysis.granularity.downcase %> coverage: <%= new_average_coverage %>%
+        (<%= new_coverage_delta > 0 ? "+" : "" %><%= new_coverage_delta %>%)
       </div>
 
       <div>
@@ -114,12 +115,13 @@
   <br/>
 
 
-
   <div class="row">
     <div class="col">
       <h3>Optimal Commitment: <%= number_to_currency(@analysis.optimal_hourly_commit) %> / hr</h3>
       <div class="mt-3">We searched all possible commitment values to optimize savings.</div>
-      <div class="mb-3">By committing to <%= number_to_currency(@analysis.optimal_hourly_commit) %> per hour for 3 years no up front, you will save approximately <%= new_monthly_savings %> per month.</div>
+      <div class="mb-3">By committing to <%= number_to_currency(@analysis.optimal_hourly_commit) %> per hour for 3 years
+        no up front, you will save approximately <%= new_monthly_savings %> per month.
+      </div>
 
       <p class="d-inline-flex gap-1">
         <a class="btn btn-outline-primary" data-bs-toggle="collapse" href="#collapseOptimalCSP" role="button" aria-expanded="false" aria-controls="collapseOptimalCSP">
@@ -170,45 +172,45 @@
       <h3>Here's the numbers breakdown</h3>
       <table class="table">
         <thead>
-          <th scope="col">Date</th>
-          <th scope="col">OD post-EDP discount</th>
-          <th scope="col">Savings Plans</th>
-          <th scope="col">OD covered by CSP</th>
-          <th scope="col">Total OD Dollars</th>
-          <th scope="col">Coverage</th>
-          <th scope="col">OD pre-EDP discount</th>
-          <th scope="col">Total we spend today</th>
-          <th scope="col">CSP' (new commit)</th>
-          <th scope="col">CSP' in on demand dollars</th>
-          <th scope="col">CSP' + CSP in on demand dollars</th>
+        <th scope="col">Date</th>
+        <th scope="col">OD post-EDP discount</th>
+        <th scope="col">Savings Plans</th>
+        <th scope="col">OD covered by CSP</th>
+        <th scope="col">Total OD Dollars</th>
+        <th scope="col">Coverage</th>
+        <th scope="col">OD pre-EDP discount</th>
+        <th scope="col">Total we spend today</th>
+        <th scope="col">CSP' (new commit)</th>
+        <th scope="col">CSP' in on demand dollars</th>
+        <th scope="col">CSP' + CSP in on demand dollars</th>
 
-          <th scope="col">OD pre-EDP, post apply CSP'</th>
-          <th scope="col">OD post-EDP, post CSP'</th>
-          <th scope="col">New Total</th>
-          <th scope="col">Savings</th>
-          <th scope="col">New Coverage</th>
+        <th scope="col">OD pre-EDP, post apply CSP'</th>
+        <th scope="col">OD post-EDP, post CSP'</th>
+        <th scope="col">New Total</th>
+        <th scope="col">Savings</th>
+        <th scope="col">New Coverage</th>
         </thead>
         <tbody>
-          <% @full_dataset.each do |row| %>
-            <tr>
-              <td><%= "#{row[:date].to_s}" %></td>
-              <td><%= "#{number_to_currency(row[:on_demand_post_discount])}" %></td>
-              <td><%= "#{number_to_currency(row[:savings_plans])}" %></td>
-              <td><%= "#{number_to_currency(row[:on_demand_covered_by_csp])}" %></td>
-              <td><%= "#{number_to_currency(row[:total_on_demand_dollars])}" %></td>
-              <td><%= "#{row[:coverage]}%" %></td>
-              <td><%= "#{number_to_currency(row[:on_demand_pre_discount])}" %></td>
-              <td><%= "#{number_to_currency(row[:total_we_spend_today])}" %></td>
-              <td><%= "#{number_to_currency(row[:csp_prime])}" %></td>
-              <td><%= "#{number_to_currency(row[:csp_prime_in_on_demand])}" %></td>
-              <td><%= "#{number_to_currency(row[:csp_prime_plus_csp_in_on_demand])}" %></td>
-              <td><%= "#{number_to_currency(row[:on_demand_pre_edp_post_csp_prime])}" %></td>
-              <td><%= "#{number_to_currency(row[:on_demand_post_edp_post_csp_prime])}" %></td>
-              <td><%= "#{number_to_currency(row[:new_total])}" %></td>
-              <td><%= "#{number_to_currency(row[:savings])}" %></td>
-              <td><%= "#{row[:new_coverage]}%" %></td>
-            </tr>
-          <% end %>
+        <% @full_dataset.each do |row| %>
+          <tr>
+            <td><%= "#{row[:date].to_s}" %></td>
+            <td><%= "#{number_to_currency(row[:on_demand_post_discount])}" %></td>
+            <td><%= "#{number_to_currency(row[:savings_plans])}" %></td>
+            <td><%= "#{number_to_currency(row[:on_demand_covered_by_csp])}" %></td>
+            <td><%= "#{number_to_currency(row[:total_on_demand_dollars])}" %></td>
+            <td><%= "#{row[:coverage]}%" %></td>
+            <td><%= "#{number_to_currency(row[:on_demand_pre_discount])}" %></td>
+            <td><%= "#{number_to_currency(row[:total_we_spend_today])}" %></td>
+            <td><%= "#{number_to_currency(row[:csp_prime])}" %></td>
+            <td><%= "#{number_to_currency(row[:csp_prime_in_on_demand])}" %></td>
+            <td><%= "#{number_to_currency(row[:csp_prime_plus_csp_in_on_demand])}" %></td>
+            <td><%= "#{number_to_currency(row[:on_demand_pre_edp_post_csp_prime])}" %></td>
+            <td><%= "#{number_to_currency(row[:on_demand_post_edp_post_csp_prime])}" %></td>
+            <td><%= "#{number_to_currency(row[:new_total])}" %></td>
+            <td><%= "#{number_to_currency(row[:savings])}" %></td>
+            <td><%= "#{row[:new_coverage]}%" %></td>
+          </tr>
+        <% end %>
         </tbody>
       </table>
     </div>

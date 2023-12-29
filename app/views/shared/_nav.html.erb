@@ -8,13 +8,17 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <a href="<%= account_path(account) %>" class="nav-link" data-turbolinks-action="replace"><%= account.name %></a>
+            <a href="<%= account_path(account) %>" class="nav-link <%= 'active' if current_page?(account_path(account)) %>" data-turbolinks-action="replace">Dashboard</a>
           </li>
           <li class="nav-item">
-            <a href="<%= account_analyses_path(account) %>" class="nav-link" data-turbolinks-action="replace">SmartRecommender</a>
+            <a href="<%= account_analyses_path(account) %>" class="nav-link <%= 'active' if current_page?(account_analyses_path(account)) %>" data-turbolinks-action="replace">SmartRecommender</a>
           </li>
           <li class="nav-item">
-            <a href="<%= account_revenue_months_path(account) %>" class="nav-link" data-turbolinks-action="replace">Business Metrics</a>
+            <a href="<%= account_revenue_months_path(account) %>" class="nav-link <%= 'active' if current_page?(account_revenue_months_path(account)) %>" data-turbolinks-action="replace">Business
+              Metrics</a>
+          </li>
+          <li class="nav-item">
+            <a href="<%= account_inventories_path(account) %>" class="nav-link <%= 'active' if current_page?(account_inventories_path(account)) %>" data-turbolinks-action="replace">Inventory</a>
           </li>
         </ul>
       </div>

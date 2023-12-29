@@ -1,21 +1,21 @@
 <%
-    chart_data = [
-        {
-            name: 'Actuals',
-            data: @cost_summary[:this_month_current_by_day].map { |result_by_time| [result_by_time[:start], result_by_time[:total]] }
-        },
-        {
-            name: 'Forecast',
-            data: @cost_summary[:this_month_forecast_by_day].map { |result_by_time| [result_by_time[:start], result_by_time[:total]] }
-        }
-    ]
-    current_monthly_total = @cost_summary[:this_month_current_by_day].sum do |result_by_time| 
-        result_by_time[:total]
-    end
-    expected_month_end_total = current_monthly_total + @cost_summary[:this_month_forecast_by_day].sum { |result_by_time| result_by_time[:total] }
-    current_month_current_services_to_ignore_total = @cost_summary[:this_month_current_services_to_ignore].sum do |result_by_time|
-        result_by_time[:total]
-    end
+  chart_data = [
+    {
+      name: 'Actuals',
+      data: @cost_summary[:this_month_current_by_day].map { |result_by_time| [result_by_time[:start], result_by_time[:total]] }
+    },
+    {
+      name: 'Forecast',
+      data: @cost_summary[:this_month_forecast_by_day].map { |result_by_time| [result_by_time[:start], result_by_time[:total]] }
+    }
+  ]
+  current_monthly_total = @cost_summary[:this_month_current_by_day].sum do |result_by_time|
+    result_by_time[:total]
+  end
+  expected_month_end_total = current_monthly_total + @cost_summary[:this_month_forecast_by_day].sum { |result_by_time| result_by_time[:total] }
+  current_month_current_services_to_ignore_total = @cost_summary[:this_month_current_services_to_ignore].sum do |result_by_time|
+    result_by_time[:total]
+  end
 %>
 <section class="container">
   <div class="row">
@@ -23,7 +23,8 @@
       <h1 class="display-1"><%= @account.name %> Dashboard</h1>
       <div class="text-secondary">
         <% if @account.is_connected? %>
-          <i class="fa-solid fa-check" style="color: green;"></i> Connected with <%= @account.connection_strategy.gsub("_", " ") %>
+          <i class="fa-solid fa-check" style="color: green;"></i> Connected
+          with <%= @account.connection_strategy.gsub("_", " ") %>
         <% else %>
           <i class="fa-solid fa-xmark" style="color: red;"></i> Not connected
         <% end %>
@@ -66,18 +67,18 @@
       </div>
       <div class="row my-4">
         <div class="col">
-          <%= 
-                        column_chart(
-                            GraphHelpers.format_cost_and_usage_for_chart(@cost_summary[:this_month_current_services_to_ignore]), 
-                            stacked: true, 
-                            legend: "bottom", 
-                            xtitle: "Date", 
-                            ytitle: "Dollars", 
-                            prefix: "$", 
-                            thousands: ",", 
-                            round: 2
-                        )
-                    %>
+          <%=
+            column_chart(
+              GraphHelpers.format_cost_and_usage_for_chart(@cost_summary[:this_month_current_services_to_ignore]),
+              stacked: true,
+              legend: "bottom",
+              xtitle: "Date",
+              ytitle: "Dollars",
+              prefix: "$",
+              thousands: ",",
+              round: 2
+            )
+          %>
         </div>
       </div>
       <div class="row text-center">
@@ -102,17 +103,17 @@
       <div class="row my-4">
         <div class="col">
           <%=
-                        column_chart(
-                            GraphHelpers.format_cost_and_usage_for_chart(@historical_usage_core), 
-                            stacked: false, 
-                            legend: "bottom", 
-                            xtitle: "Date", 
-                            ytitle: "Dollars", 
-                            prefix: "$", 
-                            thousands: ",", 
-                            round: 2
-                        )
-                    %>
+            column_chart(
+              GraphHelpers.format_cost_and_usage_for_chart(@historical_usage_core),
+              stacked: false,
+              legend: "bottom",
+              xtitle: "Date",
+              ytitle: "Dollars",
+              prefix: "$",
+              thousands: ",",
+              round: 2
+            )
+          %>
         </div>
       </div>
     </div>
@@ -127,17 +128,17 @@
       <div class="row my-4">
         <div class="col">
           <%=
-                        column_chart(
-                            GraphHelpers.format_cost_and_usage_for_chart(@historical_usage_non_core), 
-                            stacked: false, 
-                            legend: "bottom", 
-                            xtitle: "Date", 
-                            ytitle: "Dollars", 
-                            prefix: "$", 
-                            thousands: ",", 
-                            round: 2
-                        )
-                    %>
+            column_chart(
+              GraphHelpers.format_cost_and_usage_for_chart(@historical_usage_non_core),
+              stacked: false,
+              legend: "bottom",
+              xtitle: "Date",
+              ytitle: "Dollars",
+              prefix: "$",
+              thousands: ",",
+              round: 2
+            )
+          %>
         </div>
       </div>
     </div>

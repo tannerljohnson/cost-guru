@@ -1,29 +1,29 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Artemis</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
+<head>
+  <title>Artemis</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
 
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
-  </head>
+  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+  <%= javascript_importmap_tags %>
+</head>
 
-  <body>
-    <%= render 'shared/nav', account: @account %>
+<body>
+<%= render 'shared/nav', account: @account %>
 
-    <div>
-      <% flash.each do |type, msg| %>
-        <div class="alert alert-<%= type == 'alert' ? 'danger' : 'primary' %>" role="alert">
-          <%= msg.html_safe if msg %>
-        </div>
-      <% end %>
+<div>
+  <% flash.each do |type, msg| %>
+    <div class="alert alert-<%= type == 'alert' ? 'danger' : 'primary' %>" role="alert">
+      <%= msg.html_safe if msg %>
     </div>
+  <% end %>
+</div>
 
-    <br/>
-    <main>
-      <%= yield %>
-    </main>
-  </body>
+<br/>
+<main>
+  <%= yield %>
+</main>
+</body>
 </html>

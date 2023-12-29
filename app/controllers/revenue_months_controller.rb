@@ -43,9 +43,4 @@ class RevenueMonthsController < ApplicationController
   def revenue_month_params
     params.require(:revenue_month).permit(:start_date, :revenue)
   end
-
-  def load_account!
-    @account = current_user.accounts.find { |account| account.id == params[:account_id] }
-    raise "Account not found" unless @account
-  end
 end

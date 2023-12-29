@@ -1,68 +1,68 @@
 <section class="container">
-    <% 
-        revenue_chart_data = [
-            {
-                name: 'Revenue',
-                data: @revenue_months.map do |revenue_month| 
-                    [revenue_month.start_date.to_s.to_date, revenue_month.revenue] 
-                end
-            }
-        ]
+  <%
+    revenue_chart_data = [
+      {
+        name: 'Revenue',
+        data: @revenue_months.map do |revenue_month|
+          [revenue_month.start_date.to_s.to_date, revenue_month.revenue]
+        end
+      }
+    ]
 
-        spend_chart_data = GraphHelpers.format_cost_and_usage_for_chart(@spend_by_month, "Spend")
-        merged_chart_data = GraphHelpers.merge_chart_cost_and_usage_data([revenue_chart_data, spend_chart_data])
-        spend_as_percent_of_revenue_data = BusinessMetrics.compute_spend_as_percent_of_revenue(spend_chart_data, revenue_chart_data)
-    %>
-    <div class="row">
-        <div class="col">
-            <h1>Business Metrics</h1>
-        </div>
+    spend_chart_data = GraphHelpers.format_cost_and_usage_for_chart(@spend_by_month, "Spend")
+    merged_chart_data = GraphHelpers.merge_chart_cost_and_usage_data([revenue_chart_data, spend_chart_data])
+    spend_as_percent_of_revenue_data = BusinessMetrics.compute_spend_as_percent_of_revenue(spend_chart_data, revenue_chart_data)
+  %>
+  <div class="row">
+    <div class="col">
+      <h1>Business Metrics</h1>
     </div>
-    <div class="row mt-4 mb-3">
-        <div class="col">
-            <%= line_chart(merged_chart_data, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
-        </div>
+  </div>
+  <div class="row mt-4 mb-3">
+    <div class="col">
+      <%= line_chart(merged_chart_data, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
     </div>
+  </div>
 
-    <div class="row">
-        <div class="col">
-            <h3>Spend as Percent of Revenue</h3>
-        </div>
+  <div class="row">
+    <div class="col">
+      <h3>Spend as Percent of Revenue</h3>
     </div>
-    <div class="row mt-4 mb-3">
-        <div class="col">
-            <%= line_chart(spend_as_percent_of_revenue_data, legend: "bottom", xtitle: "Date", ytitle: "Percent", suffic: "%", round: 2) %>
-        </div>
+  </div>
+  <div class="row mt-4 mb-3">
+    <div class="col">
+      <%= line_chart(spend_as_percent_of_revenue_data, legend: "bottom", xtitle: "Date", ytitle: "Percent", suffic: "%", round: 2) %>
     </div>
+  </div>
 
-    <div class="row">
-        <div class="col">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Start Date</th>
-                        <th>Revenue</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% @revenue_months.each do |revenue_month| %>
-                        <tr>
-                            <td><%= revenue_month.start_date.to_s.to_date %></td>
-                            <td><%= number_to_currency(revenue_month.revenue) %></td>
-                            <td>
-                                <%= link_to "Delete", account_revenue_month_path(@account, revenue_month), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
-                            </td>
-                        </tr>
-                    <% end %>
-                </tbody>
-            </table>
-        </div>
+  <div class="row">
+    <div class="col">
+      <table class="table">
+        <thead>
+        <tr>
+          <th>Start Date</th>
+          <th>Revenue</th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <% @revenue_months.each do |revenue_month| %>
+          <tr>
+            <td><%= revenue_month.start_date.to_s.to_date %></td>
+            <td><%= number_to_currency(revenue_month.revenue) %></td>
+            <td>
+              <%= link_to "Delete", account_revenue_month_path(@account, revenue_month), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
     </div>
-    <div>
-        <%= link_to "New Entry", new_account_revenue_month_path %>
-    </div>
-    <div>
-        <%= link_to "Back to Account", account_path(@account) %>
-    </div>
+  </div>
+  <div>
+    <%= link_to "New Entry", new_account_revenue_month_path %>
+  </div>
+  <div>
+    <%= link_to "Back to Account", account_path(@account) %>
+  </div>
 </section>

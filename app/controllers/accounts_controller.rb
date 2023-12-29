@@ -49,27 +49,32 @@ class AccountsController < ApplicationController
 
         # TODO: figure out how to do more async
         @cost_summary = CostSummarizer.summarize(account: @account)
-
-        Async do |task|
-            task.async {
-                @csp_coverage = SavingsPlansFetcher.fetch_coverage(**base_request_params)
-            }
-            task.async {
-                @csp_utilization = SavingsPlansFetcher.fetch_utilization(**base_request_params)
-            }
-            task.async {
-                @on_demand_usage = CostAndUsageFetcher.fetch(**base_request_params, filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER)
-            }
-            task.async {
-                @csp_usage = CostAndUsageFetcher.fetch(**base_request_params, filter: Constants::CSP_ONLY_USAGE_FILTER)
-            }
-            task.async {
-                @historical_usage_core = CostAndUsageFetcher.fetch(**base_request_params, filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER, group_by: Constants::SERVICE, granularity: Constants::MONTHLY)
-            }
-            task.async {
-                @historical_usage_non_core = CostAndUsageFetcher.fetch(**base_request_params, filter: Constants::IGNORED_SERVICES_ONLY_FILTER, group_by: Constants::SERVICE, granularity: Constants::MONTHLY)
-            }
-        end
+        @csp_coverage = SavingsPlansFetcher.fetch_coverage(**base_request_params)
+        @csp_utilization = SavingsPlansFetcher.fetch_utilization(**base_request_params)
+        @on_demand_usage = CostAndUsageFetcher.fetch(**base_request_params, filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER)
+        @csp_usage = CostAndUsageFetcher.fetch(**base_request_params, filter: Constants::CSP_ONLY_USAGE_FILTER)
+        @historical_usage_core = CostAndUsageFetcher.fetch(**base_request_params, filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER, group_by: Constants::SERVICE, granularity: Constants::MONTHLY)
+        @historical_usage_non_core = CostAndUsageFetcher.fetch(**base_request_params, filter: Constants::IGNORED_SERVICES_ONLY_FILTER, group_by: Constants::SERVICE, granularity: Constants::MONTHLY)
+        # Async do |task|
+        #     task.async {
+        #         @csp_coverage = SavingsPlansFetcher.fetch_coverage(**base_request_params)
+        #     }
+        #     task.async {
+        #         @csp_utilization = SavingsPlansFetcher.fetch_utilization(**base_request_params)
+        #     }
+        #     task.async {
+        #         @on_demand_usage = CostAndUsageFetcher.fetch(**base_request_params, filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER)
+        #     }
+        #     task.async {
+        #         @csp_usage = CostAndUsageFetcher.fetch(**base_request_params, filter: Constants::CSP_ONLY_USAGE_FILTER)
+        #     }
+        #     task.async {
+        #         @historical_usage_core = CostAndUsageFetcher.fetch(**base_request_params, filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER, group_by: Constants::SERVICE, granularity: Constants::MONTHLY)
+        #     }
+        #     task.async {
+        #         @historical_usage_non_core = CostAndUsageFetcher.fetch(**base_request_params, filter: Constants::IGNORED_SERVICES_ONLY_FILTER, group_by: Constants::SERVICE, granularity: Constants::MONTHLY)
+        #     }
+        # end
     end
 
     private
