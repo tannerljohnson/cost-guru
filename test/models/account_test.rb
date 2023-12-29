@@ -10,6 +10,10 @@
 #  iam_access_key_id     :string
 #  iam_secret_access_key :string
 #  role_arn              :string
+#  access_key_id         :string
+#  secret_access_key     :string
+#  session_token         :string
+#  credentials_expire_at :string
 #
 require "test_helper"
 

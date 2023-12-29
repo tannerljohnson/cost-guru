@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2023_12_23_145357) do
+ActiveRecord::Schema[7.1].define(version: 2023_12_29_020808) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -23,6 +23,10 @@ ActiveRecord::Schema[7.1].define(version: 2023_12_23_145357) do
     t.string "iam_access_key_id"
     t.string "iam_secret_access_key"
     t.string "role_arn"
+    t.string "access_key_id"
+    t.string "secret_access_key"
+    t.string "session_token"
+    t.string "credentials_expire_at"
     t.index ["user_id"], name: "index_accounts_on_user_id"
   end
 

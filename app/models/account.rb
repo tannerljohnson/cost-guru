@@ -10,6 +10,10 @@
 #  iam_access_key_id     :string
 #  iam_secret_access_key :string
 #  role_arn              :string
+#  access_key_id         :string
+#  secret_access_key     :string
+#  session_token         :string
+#  credentials_expire_at :string
 #
 class Account < ApplicationRecord
     belongs_to :user
@@ -19,6 +23,8 @@ class Account < ApplicationRecord
     default_scope { order(created_at: :desc) }
 
     encrypts :iam_secret_access_key
+
+    validate :credentials_must_all_be_set_at_once
 
     def type
         'aws'
@@ -41,6 +47,14 @@ class Account < ApplicationRecord
             "cross_account_iam_role"
         elsif iam_connected?
             "iam_credentials"
+        end
+    end
+
+    private
+
+    def credentials_must_all_be_set_at_once
+        if credentials_expire_at.present?
+            errors.add(:base, "Credentials must all be set at once") unless session_token.present? && secret_access_key.present? && access_key_id.present?
         end
     end
 end
