@@ -40,6 +40,7 @@ class CostAndUsageFetcher < BaseAwsClient
   #  {:start=>"2023-12-17", :total=>52586.98, :groups=>[]}]
 
   def fetch
+    puts "✅ REMOTE CALL: get_cost_and_usage"
     request_body = {
       time_period: {
         start: start_date,
@@ -55,7 +56,12 @@ class CostAndUsageFetcher < BaseAwsClient
       ] : nil,
       metrics: [metrics]
     }
-    response = client.get_cost_and_usage(request_body)
+    begin
+      response = client.get_cost_and_usage(request_body)
+    rescue e
+      puts "ERROR! #{e}"
+    end
+
     filtered_results = response.results_by_time.filter do |res|
       res.time_period.start < end_date
     end

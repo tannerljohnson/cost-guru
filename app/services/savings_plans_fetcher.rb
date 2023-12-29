@@ -44,6 +44,7 @@ class SavingsPlansFetcher < BaseAwsClient
   end
 
   def fetch_utilization
+    puts "✅ REMOTE CALL: get_savings_plans_utilization"
     response =  client.get_savings_plans_utilization({
                                            time_period: {
                                              start: start_date,
@@ -61,6 +62,7 @@ class SavingsPlansFetcher < BaseAwsClient
   end
 
   def fetch_coverage
+    puts "✅ REMOTE CALL: get_savings_plans_coverage"
     response = client.get_savings_plans_coverage({
                                                     time_period: {
                                                       start: start_date,

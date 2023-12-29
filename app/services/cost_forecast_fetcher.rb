@@ -21,6 +21,7 @@ class CostForecastFetcher < BaseAwsClient
   end
 
   def fetch
+    puts "✅ REMOTE CALL: get_cost_forecast"
     response = client.get_cost_forecast({
       time_period: {
         start: start_date,
@@ -39,5 +40,7 @@ class CostForecastFetcher < BaseAwsClient
         groups: []
       }
     end
+  rescue e
+    puts "ERROR!: #{e}"
   end
 end
