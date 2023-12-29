@@ -4,4 +4,41 @@
       <h1>Inventory of Reserved Capacity</h1>
     </div>
   </div>
+
+  <div class="row mt-3">
+    <div class="col">
+      <h3>Compute Savings Plans</h3>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <table class="table">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>State</th>
+          <th>Commitment</th>
+          <th>Start (UTC)</th>
+          <th>End (UTC)</th>
+          <th>Days Remaining</th>
+        </tr>
+        </thead>
+        <tbody>
+        <% @savings_plans.each do |savings_plan| %>
+          <tr>
+            <td><%= link_to savings_plan[:id], UrlHelpers.get_savings_plan_path(arn: savings_plan[:arn]), target: "_blank" %></td>
+            <td style="color: <%= savings_plan[:state] == 'active' ? 'green' : 'red' %>">
+              <i class="fa-solid fa-<%= savings_plan[:state] == 'active' ? 'check' : 'xmark' %>" style="color: <%= savings_plan[:state] == 'active' ? 'green' : 'red' %>;"></i> <%= savings_plan[:state].capitalize %>
+            </td>
+            <td><%= number_to_currency(savings_plan[:commitment]) %>/hour</td>
+            <td><%= savings_plan[:start].strftime("%Y-%m-%d %H:%M:%S") %></td>
+            <td><%= savings_plan[:end].strftime("%Y-%m-%d %H:%M:%S") %></td>
+            <td><%= TimeHelpers.days_remaining_until(savings_plan[:end]) %></td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </section>

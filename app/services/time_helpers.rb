@@ -18,4 +18,13 @@ class TimeHelpers
 
     return percentage_passed.round
   end
+
+  def self.days_remaining_until(time)
+    current_time_utc = Time.now.utc
+    seconds_remaining = time - current_time_utc
+
+    return 0 if seconds_remaining < 0
+
+    (seconds_remaining / 60 / 60 / 24).to_i
+  end
 end

@@ -3,6 +3,6 @@ class InventoriesController < ApplicationController
   before_action :load_account!
 
   def index
-    200
+    @savings_plans = SavingsPlansClient.describe_savings_plans(account: @account)
   end
 end

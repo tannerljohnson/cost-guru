@@ -18,13 +18,15 @@ class Constants
 
   CLIENT_TYPES = [
     COST_EXPLORER = "CostExplorer",
-    STS = "STS"
+    STS = "STS",
+    SAVINGS_PLANS = "SavingsPlans"
   ].freeze
 
   CLIENT_CLASS_MAPPINGS = {
     COST_EXPLORER => Aws::CostExplorer::Client,
-    STS => Aws::STS::Client
-  }
+    STS => Aws::STS::Client,
+    SAVINGS_PLANS => Aws::SavingsPlans::Client
+  }.freeze
 
   USAGE_TYPES = {
     TOP_DATA_TRANSFER: [

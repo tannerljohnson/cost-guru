@@ -1,19 +1,19 @@
 class BaseAwsClient
   def initialize(
     account:,
-    start_date:,
-    end_date:,
-    granularity:,
-    filter:,
-    group_by:,
-    metrics:,
+    start_date: nil,
+    end_date: nil,
+    granularity: nil,
+    filter: nil,
+    group_by: nil,
+    metrics: nil,
     client_type:,
     enterprise_cross_service_discount: 0
   )
     @account = account
     date_str_format = granularity == Constants::HOURLY ? Constants::HOUR_FORMAT_STR : Constants::DAY_FORMAT_STR
-    @start_date = start_date.strftime(date_str_format)
-    @end_date = end_date.strftime(date_str_format)
+    @start_date = start_date&.strftime(date_str_format)
+    @end_date = end_date&.strftime(date_str_format)
     @granularity = granularity
     @filter = filter
     @group_by = group_by
