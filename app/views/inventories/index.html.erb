@@ -41,4 +41,78 @@
       </table>
     </div>
   </div>
+
+  <div class="row mt-3">
+    <div class="col">
+      <h3>RDS Reservations</h3>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <table class="table">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>State</th>
+          <th>Commitment</th>
+          <th>Start (UTC)</th>
+          <th>End (UTC)</th>
+          <th>Days Remaining</th>
+        </tr>
+        </thead>
+        <tbody>
+        <% @rds_reservations.each do |reservation| %>
+          <tr>
+            <td><%= link_to reservation[:id], UrlHelpers.get_rds_reservation_path(arn: reservation[:arn]), target: "_blank" %></td>
+            <td style="color: <%= reservation[:state] == 'active' ? 'green' : 'red' %>">
+              <i class="fa-solid fa-<%= reservation[:state] == 'active' ? 'check' : 'xmark' %>" style="color: <%= reservation[:state] == 'active' ? 'green' : 'red' %>;"></i> <%= reservation[:state].capitalize %>
+            </td>
+            <td><%= number_to_currency(reservation[:commitment]) %>/hour</td>
+            <td><%= reservation[:start].strftime("%Y-%m-%d %H:%M:%S") %></td>
+            <td><%= reservation[:end].strftime("%Y-%m-%d %H:%M:%S") %></td>
+            <td><%= TimeHelpers.days_remaining_until(reservation[:end]) %></td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="row mt-3">
+    <div class="col">
+      <h3>ElastiCache Reservations</h3>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <table class="table">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>State</th>
+          <th>Commitment</th>
+          <th>Start (UTC)</th>
+          <th>End (UTC)</th>
+          <th>Days Remaining</th>
+        </tr>
+        </thead>
+        <tbody>
+        <% @elasti_cache_reservations.each do |reservation| %>
+          <tr>
+            <td><%= link_to reservation[:id], UrlHelpers.get_elasti_cache_reservation_path(arn: reservation[:arn]), target: "_blank" %></td>
+            <td style="color: <%= reservation[:state] == 'active' ? 'green' : 'red' %>">
+              <i class="fa-solid fa-<%= reservation[:state] == 'active' ? 'check' : 'xmark' %>" style="color: <%= reservation[:state] == 'active' ? 'green' : 'red' %>;"></i> <%= reservation[:state].capitalize %>
+            </td>
+            <td><%= number_to_currency(reservation[:commitment]) %>/hour</td>
+            <td><%= reservation[:start].strftime("%Y-%m-%d %H:%M:%S") %></td>
+            <td><%= reservation[:end].strftime("%Y-%m-%d %H:%M:%S") %></td>
+            <td><%= TimeHelpers.days_remaining_until(reservation[:end]) %></td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </section>

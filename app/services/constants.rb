@@ -1,6 +1,7 @@
 class Constants
   DAY_FORMAT_STR = '%Y-%m-%d'.freeze
   HOUR_FORMAT_STR = '%Y-%m-%dT%H:%M:%SZ'.freeze
+  DEFAULT_AWS_REGION = 'us-west-2'.freeze
 
   GRANULARITIES = [
     DAILY = "DAILY",
@@ -19,13 +20,17 @@ class Constants
   CLIENT_TYPES = [
     COST_EXPLORER = "CostExplorer",
     STS = "STS",
-    SAVINGS_PLANS = "SavingsPlans"
+    SAVINGS_PLANS = "SavingsPlans",
+    RDS = "RDS",
+    ELASTI_CACHE = "ElastiCache"
   ].freeze
 
   CLIENT_CLASS_MAPPINGS = {
     COST_EXPLORER => Aws::CostExplorer::Client,
     STS => Aws::STS::Client,
-    SAVINGS_PLANS => Aws::SavingsPlans::Client
+    SAVINGS_PLANS => Aws::SavingsPlans::Client,
+    RDS => Aws::RDS::Client,
+    ELASTI_CACHE => Aws::ElastiCache::Client
   }.freeze
 
   USAGE_TYPES = {

@@ -29,7 +29,7 @@ class BaseAwsClient
     @client ||= begin
                   return unless account.is_connected?
 
-                  Aws.config.update({ region: 'us-west-2' })
+                  Aws.config.update({ region: Constants::DEFAULT_AWS_REGION })
                   klass = Constants::CLIENT_CLASS_MAPPINGS[client_type]
                   klass.new(credentials: get_iam_credentials)
                 end

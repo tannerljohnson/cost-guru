@@ -7,4 +7,14 @@ class UrlHelpers
   def self.get_savings_plan_path(arn:)
     "#{BASE_URL}/#{COST_MANAGEMENT_PATH}/#{SAVINGS_PLANS_INVENTORY_DETAILS_PATH}/#{arn}"
   end
+
+  def self.get_rds_reservation_path(arn:)
+    # TODO: implement
+    "#{BASE_URL}/#{COST_MANAGEMENT_PATH}/#{SAVINGS_PLANS_INVENTORY_DETAILS_PATH}/#{arn}"
+  end
+
+  def self.get_elasti_cache_reservation_path(arn:)
+    # TODO: implement
+    "#{BASE_URL}/#{COST_MANAGEMENT_PATH}/#{SAVINGS_PLANS_INVENTORY_DETAILS_PATH}/#{arn}"
+  end
 end
