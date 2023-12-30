@@ -24,29 +24,29 @@
   spend_delta_chart_data = [
     {
       name: 'Current total spend',
-      data: @full_dataset.map { |row| [row[:date].to_s, row[:savings_plans] + row[:on_demand_post_discount]] }
+      data: @full_dataset.map { |row| [row[:date], row[:savings_plans] + row[:on_demand_post_discount]] }
     },
     {
       name: 'New total spend',
-      data: @full_dataset.map { |row| [row[:date].to_s, row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime]] }
+      data: @full_dataset.map { |row| [row[:date], row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime]] }
     },
     {
       name: 'Difference',
-      data: @full_dataset.map { |row| [row[:date].to_s, row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime] - row[:savings_plans] - row[:on_demand_post_discount]] }
+      data: @full_dataset.map { |row| [row[:date], row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime] - row[:savings_plans] - row[:on_demand_post_discount]] }
     }
   ]
   coverage_delta_chart_data = [
     {
       name: 'Current Coverage',
-      data: @full_dataset.map { |row| [row[:date].to_s, row[:coverage]] }
+      data: @full_dataset.map { |row| [row[:date], row[:coverage]] }
     },
     {
       name: 'New Coverage',
-      data: @full_dataset.map { |row| [row[:date].to_s, row[:new_coverage]] }
+      data: @full_dataset.map { |row| [row[:date], row[:new_coverage]] }
     },
     {
       name: 'Difference',
-      data: @full_dataset.map { |row| [row[:date].to_s, row[:new_coverage] - row[:coverage]] }
+      data: @full_dataset.map { |row| [row[:date], row[:new_coverage] - row[:coverage]] }
     }
   ]
 %>
@@ -145,7 +145,7 @@
     <div class="col">
       <h3>Coverage</h3>
       <div class="my-3">This is how the coverage would change.</div>
-      <%= line_chart(coverage_delta_chart_data, points: false, legend: "bottom", xtitle: "Date", ytitle: "Percent", suffic: "%", round: 2) %>
+      <%= line_chart(coverage_delta_chart_data, points: false, legend: "bottom", xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
     </div>
   </div>
 
@@ -162,7 +162,7 @@
       <h3>Here's the numbers breakdown</h3>
       <table class="table">
         <thead>
-        <th scope="col">Date</th>
+        <th scope="col">Date (UTC)</th>
         <th scope="col">OD post-EDP discount</th>
         <th scope="col">Savings Plans</th>
         <th scope="col">OD covered by CSP</th>
@@ -183,7 +183,7 @@
         <tbody>
         <% @full_dataset.each do |row| %>
           <tr>
-            <td><%= "#{row[:date].to_s}" %></td>
+            <td><%= "#{row[:date]}" %></td>
             <td><%= "#{number_to_currency(row[:on_demand_post_discount])}" %></td>
             <td><%= "#{number_to_currency(row[:savings_plans])}" %></td>
             <td><%= "#{number_to_currency(row[:on_demand_covered_by_csp])}" %></td>

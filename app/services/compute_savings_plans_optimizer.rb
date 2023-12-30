@@ -148,7 +148,7 @@ class ComputeSavingsPlansOptimizer
       savings_plans_unit = savings_plans_cost_and_usages[i].to_f
       on_demand_covered_by_csp_unit = savings_plans_unit / (1 - CSP_DISCOUNT_RATE)
       on_demand_pre_discount_unit = on_demand_post_discount_unit / (1 - (enterprise_cross_service_discount / 100))
-      csp_prime_plus_csp_in_on_demand = savings_plans_unit + csp_prime_in_on_demand
+      csp_prime_plus_csp_in_on_demand = csp_prime_in_on_demand + on_demand_covered_by_csp_unit
       total_we_spend_today_unit = on_demand_post_discount_unit + savings_plans_unit
       on_demand_pre_edp_post_csp_prime_unit = on_demand_pre_discount_unit - csp_prime_in_on_demand
       on_demand_post_edp_post_csp_prime_unit = [on_demand_pre_edp_post_csp_prime_unit * (1 - (enterprise_cross_service_discount / 100)), 0].max
