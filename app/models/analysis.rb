@@ -16,7 +16,6 @@
 class Analysis < ApplicationRecord
   belongs_to :account
   has_many :cost_and_usages, dependent: :destroy
-  default_scope { order(created_at: :desc) }
 
   GRANULARITY_OPTIONS = [
     Constants::DAILY,

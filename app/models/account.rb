@@ -20,8 +20,6 @@ class Account < ApplicationRecord
   has_many :analyses, dependent: :destroy
   has_many :revenue_months, dependent: :destroy
 
-  default_scope { order(created_at: :desc) }
-
   encrypts :iam_secret_access_key
 
   validate :credentials_must_all_be_set_at_once
