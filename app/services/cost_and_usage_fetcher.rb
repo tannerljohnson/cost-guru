@@ -56,11 +56,6 @@ class CostAndUsageFetcher < BaseAwsClient
       ] : nil,
       metrics: [metrics]
     }
-    begin
-      response = client.get_cost_and_usage(request_body)
-    rescue e
-      puts "ERROR! #{e}"
-    end
 
     filtered_results = response.results_by_time.filter do |res|
       res.time_period.start < end_date
@@ -87,5 +82,8 @@ class CostAndUsageFetcher < BaseAwsClient
     end
 
     results
+  rescue StandardError => e
+    puts "ERROR! #{e}"
+    []
   end
 end

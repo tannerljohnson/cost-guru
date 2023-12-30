@@ -50,7 +50,6 @@ class BaseAwsClient
     credentials
   end
 
-  # TODO: Save these to account as a cache. Update when expiring
   def get_and_cache_temporary_credentials!
     # Check if credentials are still valid
     if account.credentials_expire_at.present? && Time.now.utc < (account.credentials_expire_at.to_time.utc - 5.minutes)

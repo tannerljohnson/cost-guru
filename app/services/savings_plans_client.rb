@@ -19,5 +19,8 @@ class SavingsPlansClient < BaseAwsClient
         term_duration_in_years: savings_plan.term_duration_in_seconds / 60 / 60 / 24 / 365
       }
     end
+  rescue StandardError => e
+    puts "Error! #{e}"
+    []
   end
 end

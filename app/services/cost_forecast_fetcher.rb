@@ -39,7 +39,8 @@ class CostForecastFetcher < BaseAwsClient
         groups: []
       }
     end
-  rescue e
+  rescue StandardError => e
     puts "ERROR!: #{e}"
+    []
   end
 end

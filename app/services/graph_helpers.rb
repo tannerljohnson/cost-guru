@@ -24,11 +24,13 @@ class GraphHelpers
     cost_and_usages.map do |cost_and_usage|
       raise "Cost and usage for merge cannot have groups" if cost_and_usage.size > 1
 
+      return nil if cost_and_usage.empty?
+
       {
         name: cost_and_usage.first[:name],
         data: cost_and_usage.first[:data]
       }
-    end
+    end.compact
   end
 
   # series_name is applicable only if there are no groups
@@ -66,6 +68,7 @@ class GraphHelpers
     #   {name: "confluent", data: ['2023-12-02', 109800.20]},
     #   {name: "cohere", data: ['2023-12-02', 109800.20]}
     # ]
+    return [] if cost_and_usage_data.empty?
 
     if cost_and_usage_data.first.fetch(:groups).empty?
       transformed_data = cost_and_usage_data.map { |result_by_time| [result_by_time.fetch(:start), result_by_time.fetch(:total)] }

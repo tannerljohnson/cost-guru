@@ -5,7 +5,7 @@
   new_average_coverage = (@full_dataset.sum { |row| row[:new_coverage] } / @full_dataset.count).round(2)
   current_average_coverage = (@full_dataset.sum { |row| row[:coverage] } / @full_dataset.count).round(2)
   new_coverage_delta = (new_average_coverage - current_average_coverage).round(2)
-  last_ninety_days_data = @last_ninety_days[0][:data]
+  last_ninety_days_data = @last_ninety_days[0]&.fetch(:data) || []
   last_ninety_total_excluding_analysis_period = last_ninety_days_data.filter { |res| !(res[0] >= @analysis.start_date && res[0] <= @analysis.end_date) }
   cost_for_analysis_period = last_ninety_days_data.filter { |res| res[0] >= @analysis.start_date && res[0] <= @analysis.end_date }
   total_spend_current_for_time_period = @full_dataset.sum { |row| row[:savings_plans] + row[:on_demand_post_discount] }

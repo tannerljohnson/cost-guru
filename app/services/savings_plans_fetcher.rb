@@ -59,6 +59,9 @@ class SavingsPlansFetcher < BaseAwsClient
         percentage: data.utilization.utilization_percentage.to_f
       }
     end
+  rescue StandardError => e
+    puts "Error! #{e}"
+    []
   end
 
   def fetch_coverage
@@ -76,5 +79,8 @@ class SavingsPlansFetcher < BaseAwsClient
         percentage: data.coverage.coverage_percentage.to_f
       }
     end
+  rescue StandardError => e
+    puts "Error! #{e}"
+    []
   end
 end
