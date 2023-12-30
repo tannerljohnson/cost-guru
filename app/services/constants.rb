@@ -2,6 +2,7 @@ class Constants
   DAY_FORMAT_STR = '%Y-%m-%d'.freeze
   HOUR_FORMAT_STR = '%Y-%m-%dT%H:%M:%SZ'.freeze
   DEFAULT_AWS_REGION = 'us-west-2'.freeze
+  AVG_DAYS_IN_MONTH = 30.4
 
   GRANULARITIES = [
     DAILY = "DAILY",

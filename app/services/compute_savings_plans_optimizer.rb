@@ -1,7 +1,6 @@
 class ComputeSavingsPlansOptimizer
   # This is for a 3-year no upfront commitment.
   CSP_DISCOUNT_RATE = 0.512
-  AVG_DAYS_IN_MONTH = 30.4
 
   def self.get_full_dataset(
     account:,
@@ -109,7 +108,7 @@ class ComputeSavingsPlansOptimizer
   end
 
   def get_monthly_savings_for_dataset(dataset)
-    (dataset.sum { |row| row[:savings] } * AVG_DAYS_IN_MONTH / dataset.count).round(2)
+    (dataset.sum { |row| row[:savings] } * Constants::AVG_DAYS_IN_MONTH / dataset.count).round(2)
   end
 
   def get_full_dataset(csp_prime_hourly)
@@ -119,7 +118,7 @@ class ComputeSavingsPlansOptimizer
                               when Constants::DAILY
                                 csp_prime_hourly * 24
                               when Constants::MONTHLY
-                                csp_prime_hourly * 24 * AVG_DAYS_IN_MONTH
+                                csp_prime_hourly * 24 * Constants::AVG_DAYS_IN_MONTH
                               else
                                 raise "Invalid granularity #{granularity}"
                               end
@@ -182,23 +181,4 @@ class ComputeSavingsPlansOptimizer
   def savings_plans_cost_and_usages
     @savings_plans_cost_and_usage ||= analysis.nil? ? [] : analysis.cost_and_usages.where(filter: "csp_payment").order(:start).pluck(:total)
   end
-
-  # def get_compute_savings_plans_inventory
-  #     # TODO: Add describe*, other read for savingsplan*, elasticache, rds in notion labs
-  #     # Also might need it for other stuff
-  #     # Need to instantiate a client for each
-  #     # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/ElastiCache/Client.html#describe_reserved_cache_nodes-instance_method
-  #     # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SavingsPlans/Client.html#describe_savings_plans-instance_method
-  #     # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/RDS/Client.html#describe_reserved_db_instances-instance_method
-  #     response = savings_plans_client.describe_savings_plans
-  #     response.map do |savings_plan|
-  #         {
-  #             id: savings_plan.savings_plan_id,
-  #             type: savings_plan.savings_plan_type,
-  #             commitment: savings_plan.commitment.amount,
-  #             start_date: savings_plan.start,
-  #             end_date: savings_plan.end,
-  #         }
-  #     end
-  # end
 end
