@@ -20,6 +20,9 @@
           <li class="nav-item">
             <a href="<%= account_inventories_path(account) %>" class="nav-link <%= 'active' if current_page?(account_inventories_path(account)) %>" data-turbolinks-action="replace">Inventory</a>
           </li>
+          <li class="nav-item">
+            <a href="<%= account_anomalies_path(account) %>" class="nav-link <%= 'active' if current_page?(account_anomalies_path(account)) %>" data-turbolinks-action="replace">Anomalies</a>
+          </li>
         </ul>
       </div>
     <% end %>
