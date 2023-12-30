@@ -9,9 +9,12 @@ class AnalysesController < ApplicationController
       end_date: Time.now.utc,
       granularity: Constants::DAILY
     }
-    @on_demand_usage = CostAndUsageFetcher.fetch(**request_params, filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER)
-    @csp_usage = CostAndUsageFetcher.fetch(**request_params, filter: Constants::CSP_ONLY_USAGE_FILTER)
-    @on_demand_usage_hourly = CostAndUsageFetcher.fetch(
+    # @on_demand_usage = CostAndUsageFetcher.fetch(**request_params, filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER)
+    @on_demand_usage = CostExplorerClient.get_cost_and_usage(**request_params, filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER)
+    # @csp_usage = CostAndUsageFetcher.fetch(**request_params, filter: Constants::CSP_ONLY_USAGE_FILTER)
+    @csp_usage = CostExplorerClient.get_cost_and_usage(**request_params, filter: Constants::CSP_ONLY_USAGE_FILTER)
+    # @on_demand_usage_hourly = CostAndUsageFetcher.fetch(
+    @on_demand_usage_hourly = CostExplorerClient.get_cost_and_usage(
       **request_params,
       start_date: (Time.now.utc - 14.days).beginning_of_day,
       granularity: Constants::HOURLY,
@@ -35,7 +38,8 @@ class AnalysesController < ApplicationController
       return
     end
 
-    CostAndUsageFetcher.fetch(
+    # CostAndUsageFetcher.fetch(
+    CostExplorerClient.get_cost_and_usage(
       account: @account,
       start_date: @analysis.start_date,
       end_date: @analysis.end_date,
@@ -49,7 +53,8 @@ class AnalysesController < ApplicationController
       )
     end
 
-    SavingsPlansFetcher.fetch_utilization(
+    # SavingsPlansFetcher.fetch_utilization(
+    CostExplorerClient.get_savings_plans_utilization(
       account: @account,
       start_date: @analysis.start_date,
       end_date: @analysis.end_date,
@@ -69,7 +74,7 @@ class AnalysesController < ApplicationController
     end
 
     # compute optimal csp prime with binary search
-    @optimize_commit_results = CostExplorer.compute_optimal_csp_prime(
+    @optimize_commit_results = ComputeSavingsPlansOptimizer.compute_optimal_csp_prime(
       account: @account,
       analysis: @analysis,
       start_date: @analysis.start_date,
@@ -91,7 +96,7 @@ class AnalysesController < ApplicationController
   def show
     @analysis = @account.analyses.find { |a| a.id === params[:id] }
     # No remote calls to AWS
-    @full_dataset = CostExplorer.get_full_dataset(
+    @full_dataset = ComputeSavingsPlansOptimizer.get_full_dataset(
       account: @account,
       analysis: @analysis,
       start_date: @analysis.start_date,
@@ -101,7 +106,8 @@ class AnalysesController < ApplicationController
       granularity: @analysis.granularity.upcase,
     )
 
-    last_ninety_days_cost_and_usage = CostAndUsageFetcher.fetch(
+    # last_ninety_days_cost_and_usage = CostAndUsageFetcher.fetch(
+    last_ninety_days_cost_and_usage = CostExplorerClient.get_cost_and_usage(
       account: @account,
       start_date: Time.now.utc - 90.days,
       end_date: Time.now.utc,

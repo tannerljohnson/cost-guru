@@ -5,7 +5,8 @@ class RevenueMonthsController < ApplicationController
   def index
     @revenue_months = @account.revenue_months.order(start_date: :desc)
     start_date = @revenue_months.last.start_date.beginning_of_month
-    @spend_by_month = CostAndUsageFetcher.fetch(
+    # @spend_by_month = CostAndUsageFetcher.fetch(
+    @spend_by_month = CostExplorerClient.get_cost_and_usage(
       account: @account,
       start_date: start_date,
       end_date: Time.now.utc,

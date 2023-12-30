@@ -25,7 +25,7 @@ class Analysis < ApplicationRecord
   validate :hourly_must_be_14_days_max
 
   def recompute_optimal_hourly_commit!
-    optimal_hourly = CostExplorer.compute_optimal_csp_prime(
+    optimal_hourly = ComputeSavingsPlansOptimizer.compute_optimal_csp_prime(
       account: self.account,
       analysis: self,
       start_date: self.start_date,

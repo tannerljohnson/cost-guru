@@ -1,4 +1,4 @@
-class CostExplorer
+class ComputeSavingsPlansOptimizer
   # This is for a 3-year no upfront commitment.
   CSP_DISCOUNT_RATE = 0.512
   AVG_DAYS_IN_MONTH = 30.4
