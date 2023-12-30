@@ -29,17 +29,10 @@
     {
       name: 'New total spend',
       data: @full_dataset.map { |row| [row[:date].to_s, row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime]] }
-    }
-  ]
-  spend_different_per_time_period = @full_dataset.map { |row| [row[:date].to_s, row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime] - row[:savings_plans] - row[:on_demand_post_discount]] }
-  spend_difference_per_time_period_chart_data = [
-    {
-      name: 'Overpaid by',
-      data: spend_different_per_time_period.map { |date, spend_delta| spend_delta >= 0 ? [date, spend_delta] : [date, 0] }
     },
     {
-      name: 'Saved',
-      data: spend_different_per_time_period.map { |date, spend_delta| spend_delta < 0 ? [date, spend_delta] : [date, 0] }
+      name: 'Difference',
+      data: @full_dataset.map { |row| [row[:date].to_s, row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime] - row[:savings_plans] - row[:on_demand_post_discount]] }
     }
   ]
   coverage_delta_chart_data = [
@@ -50,6 +43,10 @@
     {
       name: 'New Coverage',
       data: @full_dataset.map { |row| [row[:date].to_s, row[:new_coverage]] }
+    },
+    {
+      name: 'Difference',
+      data: @full_dataset.map { |row| [row[:date].to_s, row[:new_coverage] - row[:coverage]] }
     }
   ]
 %>
@@ -140,14 +137,7 @@
     <div class="col">
       <h3>Total Spend</h3>
       <div class="my-3">If your spend remains the same as the sample period, here is the current vs new spend.</div>
-      <%= line_chart(spend_delta_chart_data, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
-    </div>
-  </div>
-
-  <div class="row mt-4">
-    <div class="col">
-      <h3>Difference</h3>
-      <%= column_chart(spend_difference_per_time_period_chart_data, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+      <%= line_chart(spend_delta_chart_data, points: false, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
     </div>
   </div>
 
@@ -155,7 +145,7 @@
     <div class="col">
       <h3>Coverage</h3>
       <div class="my-3">This is how the coverage would change.</div>
-      <%= line_chart(coverage_delta_chart_data, legend: "bottom", xtitle: "Date", ytitle: "Percent", suffic: "%", round: 2) %>
+      <%= line_chart(coverage_delta_chart_data, points: false, legend: "bottom", xtitle: "Date", ytitle: "Percent", suffic: "%", round: 2) %>
     </div>
   </div>
 
