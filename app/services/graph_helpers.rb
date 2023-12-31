@@ -1,4 +1,37 @@
 class GraphHelpers
+  def self.get_color_for_pct_change(pct)
+    if pct < 0
+      'darkseagreen'
+    elsif pct < 20
+      'yellow'
+    elsif pct < 60
+      'orange'
+    else
+      'indianred'
+    end
+  end
+
+  def self.format_cost_and_usage_for_heat_map(cost_and_usage)
+    # TODO: group by week instead of day
+    result = {}
+    cost_and_usage.each do |data|
+      date = data[:start]
+      data[:groups].each do |service, total|
+        result[service] = [] unless result.key?(service)
+        previous_total = result[service].last&.fetch(:total)
+        pct_change_from_previous = previous_total.nil? ? 0 : (100 * ((total / previous_total) - 1))
+        result[service] << {
+          date: date,
+          pct_change: pct_change_from_previous,
+          total: total,
+          color: get_color_for_pct_change(pct_change_from_previous)
+        }
+      end
+    end
+
+    result
+  end
+
   def self.merge_chart_cost_and_usage_data(cost_and_usages)
     # INPUT:
     # [

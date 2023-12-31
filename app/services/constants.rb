@@ -1,7 +1,35 @@
 class Constants
+  def self.generate_cost_and_usage_test_fixture
+    services_in_use = [
+      AMAZON_ELASTIC_COMPUTE_CLOUD_COMPUTE,
+      AMAZON_RELATIONAL_DATABASE_SERVICE,
+      AMAZON_ELASTICACHE,
+      AMAZON_SIMPLE_STORAGE_SERVICE
+    ]
+    date_range = (Date.parse('2023-12-01')...Date.parse('2023-12-07')).to_a
+    date_range.map do |date|
+      date_total = Random.random_number(90..200)
+      remaining = date_total
+      {
+        start: date.to_s,
+        total: date_total.to_f,
+        groups: services_in_use.each_with_index.map do |service, i|
+          service_total = if i == services_in_use.length - 1
+                            remaining
+                          else
+                            [Random.random_number(0..70), remaining].min
+                          end
+          remaining -= service_total
+          [service, service_total.to_f]
+        end
+      }
+    end
+  end
+
   DAY_FORMAT_STR = '%Y-%m-%d'.freeze
   HOUR_FORMAT_STR = '%Y-%m-%dT%H:%M:%SZ'.freeze
   DEFAULT_AWS_REGION = 'us-west-2'.freeze
+  US_EAST_1 = 'us-east-1'.freeze
   AVG_DAYS_IN_MONTH = 30.4
 
   GRANULARITIES = [
