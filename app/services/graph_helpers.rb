@@ -12,16 +12,51 @@ class GraphHelpers
   end
 
   def self.format_cost_and_usage_for_heat_map(cost_and_usage)
+    # get all groups
+    # and all dates
+    all_groups = cost_and_usage.flat_map { |c| c[:groups].map { |g| g.first } }.uniq
+
+    # transform cost_and_usage to by week
+    cost_and_usage_by_week = {}
+    cost_and_usage.each do |usage_from_day|
+      date = usage_from_day[:start]
+      week = date.to_date.beginning_of_week.to_s
+      total = usage_from_day[:total]
+      groups = usage_from_day[:groups].to_h
+
+      if cost_and_usage_by_week.key?(week)
+        cost_and_usage_by_week[week][:total] += total
+        all_groups.each do |group_name|
+          group_total = groups[group_name] || 0.0
+          if cost_and_usage_by_week[week][:groups].key?(group_name)
+            cost_and_usage_by_week[week][:groups][group_name] += group_total
+          else
+            cost_and_usage_by_week[week][:groups][group_name] = group_total
+          end
+        end
+      else
+        cost_and_usage_by_week[week] = {
+          total: total,
+          groups: groups
+        }
+      end
+    end
+
     # TODO: group by week instead of day
     result = {}
-    cost_and_usage.each do |data|
-      date = data[:start]
+    cost_and_usage_by_week.each do |week, data|
       data[:groups].each do |service, total|
         result[service] = [] unless result.key?(service)
-        previous_total = result[service].last&.fetch(:total)
-        pct_change_from_previous = previous_total.nil? ? 0 : (100 * ((total / previous_total) - 1))
+        # 0 -> 0 should be 0% change
+        # 0 -> N should be 100% change
+        previous_total = result[service].last&.fetch(:total) || 0
+        pct_change_from_previous = if previous_total == 0
+                                     total == 0 ? 0.0 : 100.0
+                                   else
+                                     100 * ((total / previous_total) - 1)
+                                   end
         result[service] << {
-          date: date,
+          date: week,
           pct_change: pct_change_from_previous,
           total: total,
           color: get_color_for_pct_change(pct_change_from_previous)
@@ -29,7 +64,10 @@ class GraphHelpers
       end
     end
 
-    result
+    # remove the first week
+    result = result.map { |k, v| [k, v[1..]] }.to_h
+    # sort by most recent total desc
+    result.sort { |a, b| b[1].last[:total] <=> a[1].last[:total] }.to_h
   end
 
   def self.merge_chart_cost_and_usage_data(cost_and_usages)
