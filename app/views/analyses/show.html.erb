@@ -5,22 +5,10 @@
   new_average_coverage = (@full_dataset.sum { |row| row[:new_coverage] } / @full_dataset.count).round(2)
   current_average_coverage = (@full_dataset.sum { |row| row[:coverage] } / @full_dataset.count).round(2)
   new_coverage_delta = (new_average_coverage - current_average_coverage).round(2)
-  last_ninety_days_data = @last_ninety_days[0]&.fetch(:data) || []
-  last_ninety_total_excluding_analysis_period = last_ninety_days_data.filter { |res| !(res[0] >= @analysis.start_date && res[0] <= @analysis.end_date) }
-  cost_for_analysis_period = last_ninety_days_data.filter { |res| res[0] >= @analysis.start_date && res[0] <= @analysis.end_date }
   total_spend_current_for_time_period = @full_dataset.sum { |row| row[:savings_plans] + row[:on_demand_post_discount] }
   total_spend_new_for_time_period = @full_dataset.sum { |row| row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime] }
   total_savings_for_time_period = total_spend_current_for_time_period - total_spend_new_for_time_period
-  ninety_day_lookback_chart_data = [
-    {
-      name: 'Last 90 days',
-      data: last_ninety_total_excluding_analysis_period
-    },
-    {
-      name: 'Analysis period',
-      data: cost_for_analysis_period
-    }
-  ]
+
   spend_delta_chart_data = [
     {
       name: 'Current total spend',
@@ -96,7 +84,14 @@
     <div class="col">
       <div class="card">
         <div class="card-header">
-          <h4>Inputs</h4>
+          <div class="row">
+            <div class="col">
+              <h4>Inputs</h4>
+            </div>
+            <div class="col text-end">
+              <a href="<%= edit_account_analysis_path(@account, @analysis) %>" class="btn btn-secondary" data-turbolinks-action="replace">Edit</a>
+            </div>
+          </div>
         </div>
         <div class="card-body">
           <p>
@@ -113,7 +108,8 @@
             %
           </p>
           <p>
-            <span class="text-secondary">Commitment length</span>: <%= @analysis.commitment_years %> years
+            <span class="text-secondary">Commitment length</span>: <%= @analysis.commitment_years %>
+            year<%= @analysis.commitment_years > 1 ? 's' : '' %>
           </p>
           <p>
             <span class="text-secondary">Estimated discount versus on-demand</span>: <%= Analysis::COMMITMENT_YEARS_TO_DISCOUNT[@analysis.commitment_years] * 100 %>
@@ -163,14 +159,6 @@
       <h3>Coverage</h3>
       <div class="my-3">This is how the coverage would change.</div>
       <%= line_chart(coverage_delta_chart_data, points: false, legend: "bottom", xtitle: "Date", ytitle: "Percent", suffix: "%", round: 2) %>
-    </div>
-  </div>
-
-  <div class="row mt-4">
-    <div class="col">
-      <h3>Eligible On-Demand</h3>
-      <div class="my-3">Here's the last 3 months of compute-eligible on-demand spend for reference.</div>
-      <%= line_chart(ninety_day_lookback_chart_data, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
     </div>
   </div>
 

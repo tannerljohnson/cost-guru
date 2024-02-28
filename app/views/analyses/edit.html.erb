@@ -1,0 +1,50 @@
+<section class="container">
+  <div class="row">
+    <div class="col">
+      <h1>Update Analysis</h1>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <%= form_for [@account, @analysis] do |f| %>
+        <% if @analysis.errors.has_key?(:start_date) %>
+          <div class="alert alert-danger" role="alert">
+            <%= @analysis.errors[:start_date].join(', ') %>
+          </div>
+        <% end %>
+        <div class="mb-2">
+          <%= f.label :start_date, { class: "form-label" } %>
+          <%= f.date_field :start_date, { class: "form-control" } %>
+        </div>
+
+        <div class="mb-2">
+          <%= f.label :end_date, { class: "form-label" } %>
+          <%= f.date_field :end_date, { class: "form-control" } %>
+        </div>
+
+        <div class="mb-2">
+          <%= f.label :granularity, { class: "form-label" } %>
+          <%= f.select :granularity, options_for_select(Analysis::GRANULARITY_OPTIONS), {}, class: "form-select" %>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :enterprise_cross_service_discount_percentage, { class: "form-label" } %>
+          <%= f.number_field :enterprise_cross_service_discount, step: '0.01', class: "form-control" %>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :commitment_years, { class: "form-label" } %>
+          <%= f.select :commitment_years, options_for_select(Analysis::COMMITMENT_YEARS_TO_DISCOUNT.keys), {}, class: "form-control" %>
+        </div>
+
+        <div class="db-flex">
+          <div class="text-end">
+            <a href="<%= account_analysis_path(@account, @analysis) %>" class="btn btn-primary-outline" data-turbolinks-action="replace">Back</a>
+            <%= f.submit 'Update', class: "btn btn-primary" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>

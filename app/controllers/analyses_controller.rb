@@ -39,59 +39,38 @@ class AnalysesController < ApplicationController
       return
     end
 
-    # CostAndUsageFetcher.fetch(
-    CostExplorerClient.get_cost_and_usage(
-      account: @account,
-      start_date: @analysis.start_date,
-      end_date: @analysis.end_date,
-      granularity: @analysis.granularity,
-      filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER
-    ).each do |cost_and_usage|
-      @analysis.cost_and_usages.build(
-        filter: "csp_eligible",
-        start: cost_and_usage[:start],
-        total: cost_and_usage[:total]
-      )
-    end
-
-    # SavingsPlansFetcher.fetch_utilization(
-    CostExplorerClient.get_savings_plans_utilization(
-      account: @account,
-      start_date: @analysis.start_date,
-      end_date: @analysis.end_date,
-      granularity: @analysis.granularity,
-      enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount
-    ).each do |savings_plan_cost_and_usage|
-      @analysis.cost_and_usages.build(
-        filter: "csp_payment",
-        start: savings_plan_cost_and_usage[:start],
-        total: savings_plan_cost_and_usage[:total]
-      )
-    end
-
+    build_cost_and_usages
     # Save so we can query for cost_and_usages in cost explorer call
     unless @analysis.save
       render :new, status: :unprocessable_entity
     end
 
-    # compute optimal csp prime with binary search
-    @optimize_commit_results = ComputeSavingsPlansOptimizer.compute_optimal_csp_prime(
-      account: @account,
-      analysis: @analysis,
-      start_date: @analysis.start_date,
-      end_date: @analysis.end_date,
-      enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount,
-      granularity: @analysis.granularity,
-      commitment_years: @analysis.commitment_years
-    )
-
-    # save that to the analysis and redirect
-    @analysis.optimal_hourly_commit = @optimize_commit_results[:value]
-    @analysis.chart_data = @optimize_commit_results[:chart_data]
+    compute_csp_prime_and_chart_data
     if @analysis.save
       redirect_to account_analysis_path(@account, @analysis)
     else
       render :new, status: :unprocessable_entity
+    end
+  end
+
+  def update
+    @analysis = @account.analyses.find { |a| a.id === params[:id] }
+    unless @analysis.update(analysis_params)
+      render :edit, status: :unprocessable_entity
+      return
+    end
+
+    build_cost_and_usages
+    # Save so we can query for cost_and_usages in cost explorer call
+    unless @analysis.save
+      render :edit, status: :unprocessable_entity
+    end
+
+    compute_csp_prime_and_chart_data
+    if @analysis.save
+      redirect_to account_analysis_path(@account, @analysis)
+    else
+      render :edit, status: :unprocessable_entity
     end
   end
 
@@ -108,15 +87,10 @@ class AnalysesController < ApplicationController
       granularity: @analysis.granularity.upcase,
       commitment_years: @analysis.commitment_years
     )
+  end
 
-    last_ninety_days_cost_and_usage = CostExplorerClient.get_cost_and_usage(
-      account: @account,
-      start_date: Time.now.utc - 90.days,
-      end_date: Time.now.utc,
-      filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
-      granularity: Constants::DAILY
-    )
-    @last_ninety_days = GraphHelpers.format_cost_and_usage_for_chart(last_ninety_days_cost_and_usage)
+  def edit
+    @analysis = @account.analyses.find { |a| a.id === params[:id] }
   end
 
   def destroy
@@ -130,6 +104,55 @@ class AnalysesController < ApplicationController
   private
 
   def analysis_params
-    params.require(:analysis).permit(:start_date, :end_date, :enterprise_cross_service_discount, :granularity)
+    params.require(:analysis).permit(:start_date, :end_date, :enterprise_cross_service_discount, :granularity, :commitment_years)
+  end
+
+  def build_cost_and_usages
+    # Build and cache all the cost and usages for faster rendering
+    CostExplorerClient.get_cost_and_usage(
+      account: @account,
+      start_date: @analysis.start_date,
+      end_date: @analysis.end_date,
+      granularity: @analysis.granularity,
+      filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER
+    ).each do |cost_and_usage|
+      @analysis.cost_and_usages.build(
+        filter: "csp_eligible",
+        start: cost_and_usage[:start],
+        total: cost_and_usage[:total]
+      )
+    end
+
+    # Same thing but do it for csp_payment type
+    CostExplorerClient.get_savings_plans_utilization(
+      account: @account,
+      start_date: @analysis.start_date,
+      end_date: @analysis.end_date,
+      granularity: @analysis.granularity,
+      enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount
+    ).each do |savings_plan_cost_and_usage|
+      @analysis.cost_and_usages.build(
+        filter: "csp_payment",
+        start: savings_plan_cost_and_usage[:start],
+        total: savings_plan_cost_and_usage[:total]
+      )
+    end
+  end
+
+  def compute_csp_prime_and_chart_data
+    # Compute optimal csp prime with binary search
+    @optimize_commit_results = ComputeSavingsPlansOptimizer.compute_optimal_csp_prime(
+      account: @account,
+      analysis: @analysis,
+      start_date: @analysis.start_date,
+      end_date: @analysis.end_date,
+      enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount,
+      granularity: @analysis.granularity,
+      commitment_years: @analysis.commitment_years
+    )
+
+    # save that to the analysis and redirect
+    @analysis.optimal_hourly_commit = @optimize_commit_results[:value]
+    @analysis.chart_data = @optimize_commit_results[:chart_data]
   end
 end
