@@ -33,6 +33,11 @@
           <%= f.number_field :enterprise_cross_service_discount, step: '0.01', class: "form-control" %>
         </div>
 
+        <div class="mb-3">
+          <%= f.label :commitment_years, { class: "form-label" } %>
+          <%= f.select :commitment_years, options_for_select(Analysis::COMMITMENT_YEARS_TO_DISCOUNT.keys), {}, class: "form-control" %>
+        </div>
+
         <div class="db-flex">
           <div class="text-end">
             <a href="<%= account_analyses_path(@account) %>" class="btn btn-primary-outline" data-turbolinks-action="replace">Back</a>

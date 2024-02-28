@@ -113,12 +113,7 @@ class CostExplorerClient < BaseAwsClient
       },
       filter: filter,
       granularity: granularity,
-      group_by: group_by ? [
-        {
-          type: 'DIMENSION',
-          key: group_by
-        }
-      ] : nil,
+      group_by: group_by ? [group_by] : nil,
       metrics: [metrics]
     }
     response = client.get_cost_and_usage(request_body)

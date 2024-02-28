@@ -13,5 +13,15 @@ class AnomaliesController < ApplicationController
       filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
       group_by: Constants::SERVICE
     )
+
+    @serving_infra_ec2 = CostExplorerClient.get_cost_and_usage(
+      account: @account,
+      start_date: Time.now.utc - 3.months,
+      end_date: Time.now.utc,
+      granularity: Constants::DAILY,
+      filter: Constants::SERVING_INFRA_EC2_FILTER,
+      metrics: Constants::UNBLENDED_COST,
+      group_by: Constants::CLUSTER_TYPE
+    )
   end
 end

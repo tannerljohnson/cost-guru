@@ -9,7 +9,8 @@ class ComputeSavingsPlansOptimizer
     end_date:,
     enterprise_cross_service_discount:,
     csp_prime:,
-    granularity:
+    granularity:,
+    commitment_years:
   )
     new(
       account: account,
@@ -17,7 +18,8 @@ class ComputeSavingsPlansOptimizer
       start_date: start_date,
       end_date: end_date,
       enterprise_cross_service_discount: enterprise_cross_service_discount,
-      granularity: granularity
+      granularity: granularity,
+      commitment_years: commitment_years
     ).get_full_dataset(csp_prime)
   end
 
@@ -27,7 +29,8 @@ class ComputeSavingsPlansOptimizer
     start_date:,
     end_date:,
     enterprise_cross_service_discount:,
-    granularity:
+    granularity:,
+    commitment_years:
   )
     new(
       account: account,
@@ -35,17 +38,19 @@ class ComputeSavingsPlansOptimizer
       start_date: start_date,
       end_date: end_date,
       enterprise_cross_service_discount: enterprise_cross_service_discount,
-      granularity: granularity
+      granularity: granularity,
+      commitment_years: commitment_years
     ).compute_optimal_csp_prime
   end
 
-  def initialize(account:, analysis: nil, start_date: nil, end_date: nil, enterprise_cross_service_discount: nil, granularity: "DAILY", filter: nil, group_by: nil, metrics: "NetAmortizedCost")
+  def initialize(account:, analysis: nil, start_date: nil, end_date: nil, enterprise_cross_service_discount: nil, granularity: "DAILY", filter: nil, group_by: nil, commitment_years:, metrics: "NetAmortizedCost")
     @account = account
     @analysis = analysis
     date_str_format = granularity == Constants::HOURLY ? Constants::HOUR_FORMAT_STR : Constants::DAY_FORMAT_STR
     @start_date = start_date&.strftime(date_str_format)
     @end_date = end_date&.strftime(date_str_format)
     @enterprise_cross_service_discount = enterprise_cross_service_discount
+    @commitment_years = commitment_years
     @granularity = granularity
     @filter = filter
     @group_by = group_by
@@ -60,6 +65,7 @@ class ComputeSavingsPlansOptimizer
               :start_date,
               :end_date,
               :enterprise_cross_service_discount,
+              :commitment_years,
               :granularity,
               :filter,
               :granularity,
@@ -111,6 +117,10 @@ class ComputeSavingsPlansOptimizer
     (dataset.sum { |row| row[:savings] } * Constants::AVG_DAYS_IN_MONTH / dataset.count).round(2)
   end
 
+  def csp_discount_rate
+    Analysis::COMMITMENT_YEARS_TO_DISCOUNT[commitment_years]
+  end
+
   def get_full_dataset(csp_prime_hourly)
     csp_prime_for_time_unit = case granularity
                               when Constants::HOURLY
@@ -123,7 +133,7 @@ class ComputeSavingsPlansOptimizer
                                 raise "Invalid granularity #{granularity}"
                               end
 
-    csp_prime_in_on_demand = csp_prime_for_time_unit / (1 - CSP_DISCOUNT_RATE)
+    csp_prime_in_on_demand = csp_prime_for_time_unit / (1 - csp_discount_rate)
     date_rows = case granularity
                 when Constants::HOURLY
                   start_datetime = DateTime.parse(start_date)

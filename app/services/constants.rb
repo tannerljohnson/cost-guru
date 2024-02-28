@@ -39,11 +39,19 @@ class Constants
   ].freeze
 
   GROUP_BY_OPTIONS = [
-    SERVICE = "SERVICE"
+    SERVICE = {
+      type: "DIMENSION",
+      key: "SERVICE"
+    },
+    CLUSTER_TYPE = {
+      type: "TAG",
+      key: "ClusterType"
+    }
   ].freeze
 
   METRICS = [
-    NET_AMORTIZED_COST = "NetAmortizedCost"
+    NET_AMORTIZED_COST = "NetAmortizedCost",
+    UNBLENDED_COST = "UnblendedCost"
   ].freeze
 
   CLIENT_TYPES = [
@@ -965,6 +973,18 @@ class Constants
 
   IGNORED_SERVICES_FOR_FORECAST_FILTER = {
     dimensions: { key: "SERVICE", values: SERVICES_TO_IGNORE.excluding(SAVINGS_PLANS_FOR_AWS_COMPUTE_USAGE) }
+  }
+
+  SERVING_INFRA_EC2_FILTER = {
+    and: [
+      dimensions: { key: "SERVICE", values: [AMAZON_ELASTIC_COMPUTE_CLOUD_COMPUTE] },
+      not: {
+        tags: {
+          key: "ClusterType",
+          match_options: ["ABSENT"]
+        },
+      }
+    ]
   }
 
   CSP_ONLY_USAGE_FILTER = {

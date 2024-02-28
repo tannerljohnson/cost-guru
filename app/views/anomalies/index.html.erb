@@ -14,32 +14,32 @@
     </div>
   </div>
 
-  <div class="row my-4">
-    <div class="col">
-      <h4>Heatmap</h4>
-    </div>
-  </div>
-  <div class="row overflow-x-auto">
-    <div class="col">
-      <table class="table">
-        <thead>
-        <th></th>
-        <% heatmap_data.values.first.map { |data| data[:date] }.each do |date| %>
-          <th scope="col"><%= date %></th>
-        <% end %>
-        </thead>
+  <!--  <div class="row my-4">-->
+  <!--    <div class="col">-->
+  <!--      <h4>Heatmap</h4>-->
+  <!--    </div>-->
+  <!--  </div>-->
+  <!--  <div class="row overflow-x-auto">-->
+  <!--    <div class="col">-->
+  <!--      <table class="table">-->
+  <!--        <thead>-->
+  <!--        <th></th>-->
+  <%# heatmap_data.values.first.map { |data| data[:date] }.each do |date| %>
+  <!--          <th scope="col"><%#= date %></th>-->
+  <%# end %>
+  <!--        </thead>-->
 
-        <tbody>
-        <% heatmap_data.each do |group, group_data| %>
-          <tr>
-            <td><%= group %></td>
-            <% group_data.each do |cell| %>
-              <td style="background-color: <%= cell[:color] %>"><%= cell[:pct_change].round(2) %>%</td>
-            <% end %>
-          </tr>
-        <% end %>
-        </tbody>
-      </table>
-    </div>
-  </div>
+  <!--        <tbody>-->
+  <%# heatmap_data.each do |group, group_data| %>
+  <!--          <tr>-->
+  <!--            <td><%#= group %></td>-->
+  <%# group_data.each do |cell| %>
+  <!--              <td style="background-color: <%#= cell[:color] %>"><%#= cell[:pct_change].round(2) %>%</td>-->
+  <%# end %>
+  <!--          </tr>-->
+  <%# end %>
+  <!--        </tbody>-->
+  <!--      </table>-->
+  <!--    </div>-->
+  <!--  </div>-->
 </section>

@@ -25,9 +25,10 @@ class AnalysesController < ApplicationController
 
   def new
     @analysis = @account.analyses.new(
-      start_date: Time.now.utc.beginning_of_month,
+      start_date: Time.now.utc - 14.days,
       end_date: Time.now.utc,
-      enterprise_cross_service_discount: @account.analyses.last&.enterprise_cross_service_discount || 0
+      enterprise_cross_service_discount: @account.analyses.last&.enterprise_cross_service_discount || 0,
+      granularity: Constants::HOURLY
     )
   end
 
@@ -104,9 +105,9 @@ class AnalysesController < ApplicationController
       enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount,
       csp_prime: @analysis.optimal_hourly_commit,
       granularity: @analysis.granularity.upcase,
+      commitment_years: @analysis.commitment_years
     )
 
-    # last_ninety_days_cost_and_usage = CostAndUsageFetcher.fetch(
     last_ninety_days_cost_and_usage = CostExplorerClient.get_cost_and_usage(
       account: @account,
       start_date: Time.now.utc - 90.days,

@@ -10,17 +10,23 @@
 #  start_date                        :datetime
 #  end_date                          :datetime
 #  optimal_hourly_commit             :float
-#  granularity                       :string           default("daily"), not null
+#  granularity                       :string           default("hourly"), not null
 #  chart_data                        :jsonb            not null
+#  commitment_years                  :integer          default(3), not null
 #
 class Analysis < ApplicationRecord
   belongs_to :account
   has_many :cost_and_usages, dependent: :destroy
 
   GRANULARITY_OPTIONS = [
-    Constants::DAILY,
     Constants::HOURLY,
+    Constants::DAILY,
   ]
+  COMMITMENT_YEARS_TO_DISCOUNT = {
+    3 => 0.512,
+    1 => 0.40 # todo: figure out true rate
+  }
+  validates :commitment_years, presence: true
   validate :hourly_must_be_14_days_max
 
   def recompute_optimal_hourly_commit!
