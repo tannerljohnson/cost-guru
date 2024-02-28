@@ -41,6 +41,29 @@ class CostExplorerClient < BaseAwsClient
     ).get_cost_forecast
   end
 
+  def self.get_reservations_coverage(
+    account:,
+    start_date:,
+    end_date:,
+    granularity: Constants::DAILY,
+    filter: nil,
+    group_by: nil,
+    metrics: Constants::NET_AMORTIZED_COST,
+    enterprise_cross_service_discount: 0
+  )
+    new(
+      account: account,
+      start_date: start_date,
+      end_date: end_date,
+      granularity: granularity,
+      filter: filter,
+      group_by: group_by,
+      metrics: metrics,
+      client_type: Constants::COST_EXPLORER,
+      enterprise_cross_service_discount: enterprise_cross_service_discount
+    ).get_reservations_coverage
+  end
+
   def self.get_savings_plans_utilization(
     account:,
     start_date:,
@@ -168,6 +191,33 @@ class CostExplorerClient < BaseAwsClient
     end
   rescue StandardError => e
     puts "ERROR!: #{e}"
+    []
+  end
+
+  def get_reservations_coverage
+    puts "✅ REMOTE CALL: get_reservations_coverage"
+    response = client.get_reservation_coverage({
+                                                 time_period: {
+                                                   start: start_date,
+                                                   end: end_date
+                                                 },
+                                                 granularity: group_by ? nil : granularity,
+                                                 filter: filter,
+                                                 group_by: group_by ? [group_by] : nil,
+                                                 metrics: [metrics]
+                                               })
+    puts response
+    formatted_data = response.coverages_by_time.map do |data|
+      {
+        start: data.time_period.start,
+        on_demand_hours: data.total.coverage_hours.on_demand_hours.to_f,
+        reserved_hours: data.total.coverage_hours.reserved_hours.to_f,
+        covered_hours_percentage: data.total.coverage_hours.coverage_hours_percentage.to_f
+      }
+    end
+    formatted_data
+  rescue StandardError => e
+    puts "Error! #{e}"
     []
   end
 
