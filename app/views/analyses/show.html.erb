@@ -9,20 +9,35 @@
   total_spend_new_for_time_period = @full_dataset.sum { |row| row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime] }
   total_savings_for_time_period = total_spend_current_for_time_period - total_spend_new_for_time_period
 
-  spend_delta_chart_data = [
+  on_demand_spend_delta_chart_data = [
     {
-      name: 'Current total spend',
-      data: @full_dataset.map { |row| [row[:date], row[:savings_plans] + row[:on_demand_post_discount]] }
+      name: 'Current on demand spend',
+      data: @full_dataset.map { |row| [row[:date], row[:on_demand_post_discount]] }
     },
     {
-      name: 'New total spend',
-      data: @full_dataset.map { |row| [row[:date], row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime]] }
+      name: 'New on demand spend',
+      data: @full_dataset.map { |row| [row[:date], row[:on_demand_post_edp_post_csp_prime]] }
     },
+  ]
+
+  csp_spend_delta_chart_data = [
+    {
+      name: 'Current savings plans spend',
+      data: @full_dataset.map { |row| [row[:date], row[:savings_plans]] }
+    },
+    {
+      name: 'New savings plans spend',
+      data: @full_dataset.map { |row| [row[:date], row[:savings_plans] + row[:csp_prime]] }
+    },
+  ]
+
+  difference_spend_chart_data = [
     {
       name: 'Difference',
       data: @full_dataset.map { |row| [row[:date], row[:savings_plans] + row[:csp_prime] + row[:on_demand_post_edp_post_csp_prime] - row[:savings_plans] - row[:on_demand_post_discount]] }
     }
   ]
+
   coverage_delta_chart_data = [
     {
       name: 'Current Coverage',
@@ -148,9 +163,38 @@
 
   <div class="row mt-4">
     <div class="col">
-      <h3>Total Spend</h3>
-      <div class="my-3">If your spend remains the same as the sample period, here is the current vs new spend.</div>
-      <%= line_chart(spend_delta_chart_data, points: false, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+      <h3>Current vs New On Demand Spend</h3>
+      <%= area_chart(on_demand_spend_delta_chart_data, points: false, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col">
+      <h3>Current vs New Compute Savings Plans Spend</h3>
+      <%= area_chart(csp_spend_delta_chart_data, points: false, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col">
+      <h3>Total Spend Difference</h3>
+      <%= area_chart(difference_spend_chart_data, points: false, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
+    </div>
+  </div>
+
+  <div class="row mt-5 mb-2 text-center">
+    <div class="col">
+      <h5>Current On Demand vs Savings Plans Spend</h5>
+    </div>
+  </div>
+  <div class="row mt-2">
+    <div class="col">
+      <%
+        on_demand_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@on_demand_usage, "On Demand")
+        csp_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@csp_usage, "Savings Plans")
+        merged_chart_data = GraphHelpers.merge_chart_cost_and_usage_data([csp_usage_for_chart, on_demand_usage_for_chart])
+      %>
+      <%= area_chart(merged_chart_data, points: false, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
     </div>
   </div>
 

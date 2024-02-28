@@ -140,7 +140,7 @@ class GraphHelpers
     #   {name: "cohere", data: ['2023-12-02', 109800.20]}
     # ]
     return [] if cost_and_usage_data.empty?
-
+    
     if cost_and_usage_data.first.fetch(:groups).empty?
       transformed_data = cost_and_usage_data.map { |result_by_time| [result_by_time.fetch(:start), result_by_time.fetch(:total)] }
       filtered_data = start_date_override ? transformed_data.filter { |date, _total| date >= start_date_override } : transformed_data

@@ -180,13 +180,35 @@ class CostExplorerClient < BaseAwsClient
                                                       },
                                                       granularity: granularity
                                                     })
-    response.savings_plans_utilizations_by_time.map do |data|
+    formatted_data = response.savings_plans_utilizations_by_time.map do |data|
       {
         start: data.time_period.start,
         total: data.utilization.total_commitment.to_f * (1 - (enterprise_cross_service_discount / 100)),
         percentage: data.utilization.utilization_percentage.to_f
       }
     end
+    # if the response is clipped before end_date, we should extrapolate
+    # assume the same total for the remaining time between max response date end_date
+    # seems the api will return up to today - 1.day
+    max_entry = formatted_data.max_by { |data| data[:start] }
+    max_returned_date = max_entry[:start]
+    if max_returned_date < end_date
+      current_date = max_returned_date
+      while current_date < end_date
+        current_date = if granularity == Constants::HOURLY
+                         (current_date.to_time.in_time_zone('UTC') + 1.hour).strftime(Constants::HOUR_FORMAT_STR)
+                       else
+                         (current_date.to_date + 1.day).strftime(Constants::DAY_FORMAT_STR)
+                       end
+        formatted_data << {
+          start: current_date,
+          total: max_entry[:total],
+          percentage: max_entry[:percentage]
+        }
+      end
+    end
+
+    formatted_data
   rescue StandardError => e
     puts "Error! #{e}"
     []

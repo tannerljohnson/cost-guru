@@ -25,7 +25,7 @@
         </tr>
         </thead>
         <tbody>
-        <% @savings_plans.each do |savings_plan| %>
+        <% @savings_plans.sort_by { |sp| sp[:end] }.each do |savings_plan| %>
           <tr>
             <%
               days_remaining = savings_plan[:state] == 'active' ? TimeHelpers.days_remaining_until(savings_plan[:end]) : '-'

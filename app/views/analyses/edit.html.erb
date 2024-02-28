@@ -25,7 +25,7 @@
 
         <div class="mb-2">
           <%= f.label :granularity, { class: "form-label" } %>
-          <%= f.select :granularity, options_for_select(Analysis::GRANULARITY_OPTIONS), {}, class: "form-select" %>
+          <%= f.select :granularity, options_for_select(Analysis::GRANULARITY_OPTIONS, @analysis.granularity), {}, class: "form-select" %>
         </div>
 
         <div class="mb-3">
@@ -35,7 +35,7 @@
 
         <div class="mb-3">
           <%= f.label :commitment_years, { class: "form-label" } %>
-          <%= f.select :commitment_years, options_for_select(Analysis::COMMITMENT_YEARS_TO_DISCOUNT.keys), {}, class: "form-control" %>
+          <%= f.select :commitment_years, options_for_select(Analysis::COMMITMENT_YEARS_TO_DISCOUNT.keys, @analysis.commitment_years), {}, class: "form-control" %>
         </div>
 
         <div class="db-flex">

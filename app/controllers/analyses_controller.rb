@@ -60,6 +60,8 @@ class AnalysesController < ApplicationController
       return
     end
 
+    # purge all current cost_and_usages
+    @analysis.cost_and_usages.destroy_all
     build_cost_and_usages
     # Save so we can query for cost_and_usages in cost explorer call
     unless @analysis.save
@@ -87,6 +89,21 @@ class AnalysesController < ApplicationController
       granularity: @analysis.granularity.upcase,
       commitment_years: @analysis.commitment_years
     )
+    @on_demand_usage = @analysis.cost_and_usages.where(filter: "csp_eligible").pluck(:start, :total, :groups).map do |cost_and_usage|
+      {
+        start: cost_and_usage[0],
+        total: cost_and_usage[1],
+        groups: cost_and_usage[2]
+      }
+    end
+
+    @csp_usage = @analysis.cost_and_usages.where(filter: "csp_payment").pluck(:start, :total, :groups).map do |cost_and_usage|
+      {
+        start: cost_and_usage[0],
+        total: cost_and_usage[1],
+        groups: cost_and_usage[2]
+      }
+    end
   end
 
   def edit
