@@ -81,7 +81,8 @@ class AnalysesController < ApplicationController
       start_date: @analysis.start_date,
       end_date: @analysis.end_date,
       enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount,
-      granularity: @analysis.granularity
+      granularity: @analysis.granularity,
+      commitment_years: @analysis.commitment_years
     )
 
     # save that to the analysis and redirect

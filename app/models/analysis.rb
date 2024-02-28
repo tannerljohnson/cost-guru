@@ -26,7 +26,10 @@ class Analysis < ApplicationRecord
     3 => 0.512,
     1 => 0.40 # todo: figure out true rate
   }
-  validates :commitment_years, presence: true
+  validates :commitment_years, presence: true, inclusion: { in: COMMITMENT_YEARS_TO_DISCOUNT.keys }
+  validates :granularity, presence: true, inclusion: { in: GRANULARITY_OPTIONS }
+  validates :start_date, presence: true
+  validates :end_date, presence: true
   validate :hourly_must_be_14_days_max
 
   def recompute_optimal_hourly_commit!
@@ -36,7 +39,8 @@ class Analysis < ApplicationRecord
       start_date: self.start_date,
       end_date: self.end_date,
       enterprise_cross_service_discount: self.enterprise_cross_service_discount,
-      granularity: self.granularity
+      granularity: self.granularity,
+      commitment_years: self.commitment_years
     )
     self.optimal_hourly_commit = optimal_hourly
     self.save!
@@ -45,7 +49,7 @@ class Analysis < ApplicationRecord
   private
 
   def hourly_must_be_14_days_max
-    if granularity == Constants::HOURLY && start_date < (Time.now.utc - 14.days).beginning_of_day
+    if granularity && start_date && granularity == Constants::HOURLY && start_date < (Time.now.utc - 14.days).beginning_of_day
       errors.add(:start_date, "Start date is too old for hourly, the max supported days for hourly granularity is 14 days")
     end
   end
