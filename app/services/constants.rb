@@ -38,16 +38,33 @@ class Constants
     MONTHLY = "MONTHLY"
   ].freeze
 
-  GROUP_BY_OPTIONS = [
-    SERVICE = {
+  GROUP_BY_OPTIONS_FOR_FORM = {
+    "None (Default)" => "NONE",
+    # service doesn't make sense cuz it's always EC2! find others
+    # "Service" => "SERVICE",
+    "Cluster Type" => "CLUSTER_TYPE",
+    "Cluster" => "CLUSTER",
+    "Team" => "TEAM"
+  }
+  GROUP_BY_OPTIONS = {
+    "NONE" => nil,
+    "SERVICE" => {
       type: "DIMENSION",
       key: "SERVICE"
     },
-    CLUSTER_TYPE = {
+    "CLUSTER_TYPE" => {
       type: "TAG",
       key: "ClusterType"
+    },
+    "CLUSTER" => {
+      type: "TAG",
+      key: "Cluster"
+    },
+    "TEAM" => {
+      type: "TAG",
+      key: "Team"
     }
-  ].freeze
+  }.freeze
 
   METRICS = [
     NET_AMORTIZED_COST = "NetAmortizedCost",

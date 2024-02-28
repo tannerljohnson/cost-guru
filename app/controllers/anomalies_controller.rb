@@ -11,7 +11,7 @@ class AnomaliesController < ApplicationController
       end_date: Time.now.utc,
       granularity: Constants::DAILY,
       filter: Constants::EXCLUDE_IGNORED_SERVICES_FILTER,
-      group_by: Constants::SERVICE
+      group_by: Constants::GROUP_BY_OPTIONS["SERVICE"]
     )
 
     @serving_infra_ec2 = CostExplorerClient.get_cost_and_usage(
@@ -21,7 +21,7 @@ class AnomaliesController < ApplicationController
       granularity: Constants::DAILY,
       filter: Constants::SERVING_INFRA_EC2_FILTER,
       metrics: Constants::UNBLENDED_COST,
-      group_by: Constants::CLUSTER_TYPE
+      group_by: Constants::GROUP_BY_OPTIONS["CLUSTER_TYPE"]
     )
   end
 end

@@ -28,6 +28,12 @@
           <%= f.select :granularity, options_for_select(Analysis::GRANULARITY_OPTIONS, @analysis.granularity), {}, class: "form-select" %>
         </div>
 
+
+        <div class="mb-2">
+          <%= f.label :group_by, { class: "form-label" } %>
+          <%= f.select :group_by, options_for_select(Constants::GROUP_BY_OPTIONS_FOR_FORM, @analysis.group_by), {}, class: "form-select" %>
+        </div>
+
         <div class="mb-3">
           <%= f.label :enterprise_cross_service_discount_percentage, { class: "form-label" } %>
           <%= f.number_field :enterprise_cross_service_discount, step: '0.01', class: "form-control" %>

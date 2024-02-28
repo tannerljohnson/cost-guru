@@ -163,6 +163,20 @@
 
   <div class="row mt-4">
     <div class="col">
+      <h3>On Demand Spend by <%= @analysis.group_by.titleize %></h3>
+      <%= line_chart(
+            GraphHelpers.format_cost_and_usage_for_chart(
+              @analysis.cost_and_usages.where(filter: "csp_eligible").map do |cu|
+                { start: cu.start, total: cu.total, groups: cu.groups }
+              end
+            ), points: false, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2
+          )
+      %>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col">
       <h3>Current vs New On Demand Spend</h3>
       <%= area_chart(on_demand_spend_delta_chart_data, points: false, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
     </div>
@@ -179,22 +193,6 @@
     <div class="col">
       <h3>Total Spend Difference</h3>
       <%= area_chart(difference_spend_chart_data, points: false, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
-    </div>
-  </div>
-
-  <div class="row mt-5 mb-2 text-center">
-    <div class="col">
-      <h5>Current On Demand vs Savings Plans Spend</h5>
-    </div>
-  </div>
-  <div class="row mt-2">
-    <div class="col">
-      <%
-        on_demand_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@on_demand_usage, "On Demand")
-        csp_usage_for_chart = GraphHelpers.format_cost_and_usage_for_chart(@csp_usage, "Savings Plans")
-        merged_chart_data = GraphHelpers.merge_chart_cost_and_usage_data([csp_usage_for_chart, on_demand_usage_for_chart])
-      %>
-      <%= area_chart(merged_chart_data, points: false, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2) %>
     </div>
   </div>
 

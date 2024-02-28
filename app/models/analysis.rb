@@ -10,9 +10,10 @@
 #  start_date                        :datetime
 #  end_date                          :datetime
 #  optimal_hourly_commit             :float
-#  granularity                       :string           default("hourly"), not null
+#  granularity                       :string           default("HOURLY"), not null
 #  chart_data                        :jsonb            not null
 #  commitment_years                  :integer          default(3), not null
+#  group_by                          :jsonb
 #
 class Analysis < ApplicationRecord
   belongs_to :account
@@ -22,6 +23,7 @@ class Analysis < ApplicationRecord
     Constants::HOURLY,
     Constants::DAILY,
   ]
+
   COMMITMENT_YEARS_TO_DISCOUNT = {
     3 => 0.512,
     1 => 0.40 # todo: figure out true rate
@@ -31,6 +33,8 @@ class Analysis < ApplicationRecord
   validates :start_date, presence: true
   validates :end_date, presence: true
   validate :hourly_must_be_14_days_max
+
+  before_save :nullify_group_by
 
   def recompute_optimal_hourly_commit!
     optimal_hourly = ComputeSavingsPlansOptimizer.compute_optimal_csp_prime(
@@ -47,6 +51,12 @@ class Analysis < ApplicationRecord
   end
 
   private
+
+  def nullify_group_by
+    unless self.group_by.present?
+      self.group_by = nil
+    end
+  end
 
   def hourly_must_be_14_days_max
     if granularity && start_date && granularity == Constants::HOURLY && start_date < (Time.now.utc - 14.days).beginning_of_day

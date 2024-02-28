@@ -178,13 +178,13 @@ class CostExplorerClient < BaseAwsClient
                                                         start: start_date,
                                                         end: end_date
                                                       },
-                                                      granularity: granularity
+                                                      granularity: granularity,
                                                     })
     formatted_data = response.savings_plans_utilizations_by_time.map do |data|
       {
         start: data.time_period.start,
         total: data.utilization.total_commitment.to_f * (1 - (enterprise_cross_service_discount / 100)),
-        percentage: data.utilization.utilization_percentage.to_f
+        percentage: data.utilization.utilization_percentage.to_f,
       }
     end
     # if the response is clipped before end_date, we should extrapolate
@@ -203,7 +203,7 @@ class CostExplorerClient < BaseAwsClient
         formatted_data << {
           start: current_date,
           total: max_entry[:total],
-          percentage: max_entry[:percentage]
+          percentage: max_entry[:percentage],
         }
       end
     end

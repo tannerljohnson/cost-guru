@@ -10,9 +10,10 @@
 #  start_date                        :datetime
 #  end_date                          :datetime
 #  optimal_hourly_commit             :float
-#  granularity                       :string           default("hourly"), not null
+#  granularity                       :string           default("HOURLY"), not null
 #  chart_data                        :jsonb            not null
 #  commitment_years                  :integer          default(3), not null
+#  group_by                          :jsonb
 #
 require "test_helper"
 

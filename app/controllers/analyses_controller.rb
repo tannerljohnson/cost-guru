@@ -77,7 +77,8 @@ class AnalysesController < ApplicationController
   end
 
   def show
-    @analysis = @account.analyses.find { |a| a.id === params[:id] }
+    # Preload cost and usages for use in the view and avoid n+1 queries
+    @analysis = Analysis.includes(:cost_and_usages).find_by(id: params[:id], account: @account)
     # No remote calls to AWS
     @full_dataset = ComputeSavingsPlansOptimizer.get_full_dataset(
       account: @account,
@@ -89,21 +90,6 @@ class AnalysesController < ApplicationController
       granularity: @analysis.granularity.upcase,
       commitment_years: @analysis.commitment_years
     )
-    @on_demand_usage = @analysis.cost_and_usages.where(filter: "csp_eligible").pluck(:start, :total, :groups).map do |cost_and_usage|
-      {
-        start: cost_and_usage[0],
-        total: cost_and_usage[1],
-        groups: cost_and_usage[2]
-      }
-    end
-
-    @csp_usage = @analysis.cost_and_usages.where(filter: "csp_payment").pluck(:start, :total, :groups).map do |cost_and_usage|
-      {
-        start: cost_and_usage[0],
-        total: cost_and_usage[1],
-        groups: cost_and_usage[2]
-      }
-    end
   end
 
   def edit
@@ -121,7 +107,7 @@ class AnalysesController < ApplicationController
   private
 
   def analysis_params
-    params.require(:analysis).permit(:start_date, :end_date, :enterprise_cross_service_discount, :granularity, :commitment_years)
+    params.require(:analysis).permit(:start_date, :end_date, :enterprise_cross_service_discount, :granularity, :commitment_years, :group_by)
   end
 
   def build_cost_and_usages
@@ -131,12 +117,14 @@ class AnalysesController < ApplicationController
       start_date: @analysis.start_date,
       end_date: @analysis.end_date,
       granularity: @analysis.granularity,
-      filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER
+      filter: Constants::CSP_ELIGIBLE_COST_AND_USAGE_FILTER,
+      group_by: Constants::GROUP_BY_OPTIONS[@analysis.group_by]
     ).each do |cost_and_usage|
       @analysis.cost_and_usages.build(
         filter: "csp_eligible",
         start: cost_and_usage[:start],
-        total: cost_and_usage[:total]
+        total: cost_and_usage[:total],
+        groups: cost_and_usage[:groups]
       )
     end
 
@@ -146,7 +134,7 @@ class AnalysesController < ApplicationController
       start_date: @analysis.start_date,
       end_date: @analysis.end_date,
       granularity: @analysis.granularity,
-      enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount
+      enterprise_cross_service_discount: @analysis.enterprise_cross_service_discount,
     ).each do |savings_plan_cost_and_usage|
       @analysis.cost_and_usages.build(
         filter: "csp_payment",

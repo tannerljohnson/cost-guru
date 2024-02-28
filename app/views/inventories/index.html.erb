@@ -25,7 +25,7 @@
         </tr>
         </thead>
         <tbody>
-        <% @savings_plans.sort_by { |sp| sp[:end] }.each do |savings_plan| %>
+        <% @savings_plans.sort_by { |sp| [sp[:state] == 'active' ? 0 : 1, sp[:end]] }.each do |savings_plan| %>
           <tr>
             <%
               days_remaining = savings_plan[:state] == 'active' ? TimeHelpers.days_remaining_until(savings_plan[:end]) : '-'
@@ -69,7 +69,7 @@
         </tr>
         </thead>
         <tbody>
-        <% @rds_reservations.each do |reservation| %>
+        <% @rds_reservations.sort_by { |res| [res[:state] == 'active' ? 0 : 1, res[:end]] }.each do |reservation| %>
           <tr>
             <%
               days_remaining = reservation[:state] == 'active' ? TimeHelpers.days_remaining_until(reservation[:end]) : '-'
@@ -115,7 +115,7 @@
         </tr>
         </thead>
         <tbody>
-        <% @elasti_cache_reservations.each do |reservation| %>
+        <% @elasti_cache_reservations.sort_by { |res| [res[:state] == 'active' ? 0 : 1, res[:end]] }.each do |reservation| %>
           <tr>
             <%
               days_remaining = reservation[:state] == 'active' ? TimeHelpers.days_remaining_until(reservation[:end]) : '-'
