@@ -164,12 +164,12 @@
   <div class="row mt-4">
     <div class="col">
       <h3>On Demand Spend by <%= @analysis.group_by.titleize %></h3>
-      <%= line_chart(
+      <%= column_chart(
             GraphHelpers.format_cost_and_usage_for_chart(
               @analysis.cost_and_usages.where(filter: "csp_eligible").map do |cu|
                 { start: cu.start, total: cu.total, groups: cu.groups }
               end
-            ), points: false, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2
+            ), points: false, stacked: true, legend: "bottom", xtitle: "Date", ytitle: "Dollars", prefix: "$", thousands: ",", round: 2
           )
       %>
     </div>

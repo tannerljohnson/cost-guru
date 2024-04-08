@@ -114,7 +114,15 @@ class ComputeSavingsPlansOptimizer
   end
 
   def get_monthly_savings_for_dataset(dataset)
-    (dataset.sum { |row| row[:savings] } * Constants::AVG_DAYS_IN_MONTH / dataset.count).round(2)
+    # dataset is a map of either day or hour to savings for that time period
+    case granularity
+    when Constants::HOURLY
+      (dataset.sum { |row| row[:savings] } * 24 * Constants::AVG_DAYS_IN_MONTH / dataset.count).round(2)
+    when Constants::DAILY
+      (dataset.sum { |row| row[:savings] } * Constants::AVG_DAYS_IN_MONTH / dataset.count).round(2)
+    else
+      raise 'Bad input'
+    end
   end
 
   def csp_discount_rate

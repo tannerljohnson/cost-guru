@@ -42,7 +42,7 @@ class CostSummarizer
       end_date: end_of_month,
       granularity: granularity,
       filter: Constants::IGNORED_SERVICES_FOR_FORECAST_FILTER,
-      group_by: Constants::SERVICE,
+      group_by: Constants::GROUP_BY_OPTIONS["SERVICE"],
       metrics: metrics
     )
 
