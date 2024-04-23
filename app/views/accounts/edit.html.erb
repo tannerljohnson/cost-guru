@@ -1,7 +1,7 @@
 <section class="container">
   <div class="row">
     <div class="col">
-      <h1>Manage Connector</h1>
+      <h1>Manage Account</h1>
     </div>
   </div>
 
@@ -16,16 +16,6 @@
         <div class="mb-2">
           <%= form.label :cross_account_role_arn, { class: "form-label" } %>
           <%= form.text_field :role_arn, { class: "form-control" } %>
-        </div>
-
-        <div class="mb-2">
-          <%= form.label :iam_access_key_id, { class: "form-label" } %>
-          <%= form.text_field :iam_access_key_id, { class: "form-control" } %>
-        </div>
-
-        <div class="mb-3">
-          <%= form.label :iam_secret_access_key, { class: "form-label" } %>
-          <%= form.text_field :iam_secret_access_key, { class: "form-control" } %>
         </div>
 
         <div class="db-flex">

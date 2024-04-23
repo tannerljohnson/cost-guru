@@ -1,0 +1,23 @@
+<section class="container">
+  <div class="row">
+    <div class="col">
+      <h3 class="display-3">Invite a new member</h3>
+    </div>
+  </div>
+
+  <%= form_for [@account, @invitation] do |f| %>
+    <div class="mb-2">
+      <%= f.label :email, { class: "form-label" } %>
+      <%= f.email_field :email, { class: "form-control" } %>
+    </div>
+
+
+    <div class="db-flex">
+      <div class="text-end">
+        <a href="<%= account_members_path(@account) %>" class="btn btn-primary-outline" data-turbolinks-action="replace">Back
+          to Members</a>
+        <%= f.submit 'Invite', class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</section>

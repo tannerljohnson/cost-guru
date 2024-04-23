@@ -13,7 +13,7 @@
 #  granularity                       :string           default("HOURLY"), not null
 #  chart_data                        :jsonb            not null
 #  commitment_years                  :integer          default(3), not null
-#  group_by                          :jsonb
+#  group_by                          :string           default("NONE"), not null
 #
 class Analysis < ApplicationRecord
   belongs_to :account

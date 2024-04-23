@@ -16,9 +16,13 @@
 #  credentials_expire_at :string
 #
 class Account < ApplicationRecord
-  belongs_to :user
+  belongs_to :owner, class_name: 'User', foreign_key: :user_id
   has_many :analyses, dependent: :destroy
   has_many :revenue_months, dependent: :destroy
+  has_many :membership_invitations, dependent: :destroy
+  has_many :account_memberships, dependent: :destroy
+
+  after_create_commit :create_membership_for_owner!
 
   encrypts :iam_secret_access_key
 
@@ -54,5 +58,9 @@ class Account < ApplicationRecord
     if credentials_expire_at.present?
       errors.add(:base, "Credentials must all be set at once") unless session_token.present? && secret_access_key.present? && access_key_id.present?
     end
+  end
+
+  def create_membership_for_owner!
+    self.account_memberships.create!(user: self.owner)
   end
 end

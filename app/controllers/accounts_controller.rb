@@ -2,7 +2,8 @@ class AccountsController < ApplicationController
   before_action :authenticate_user!
 
   def index
-    @accounts = current_user.accounts
+    @accounts = current_user.account_memberships.includes(:account).map { |membership| membership.account }
+    @invitations = MembershipInvitation.pending.where(email: current_user.email)
   end
 
   def new

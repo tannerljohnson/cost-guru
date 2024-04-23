@@ -1,0 +1,8 @@
+<div>Howdy</div>
+<div>
+  <%= @invited_by.email %> invited you to join Artemis for <%= @account %>
+</div>
+
+<div class="text-center">
+  <%= link_to 'Join', user_invitation_url(invitation_token: @token), class: 'btn' %>
+</div>

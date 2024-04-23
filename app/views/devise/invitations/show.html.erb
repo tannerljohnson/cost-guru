@@ -1,0 +1,15 @@
+<div class="row">
+  <div class="col text-center">
+    <p>
+      <code><%= @invitation.invited_by.email %></code> has invited you to join Artemis on
+      the <%= @invitation.account.name %>
+      account.
+    </p>
+    <div class="row">
+      <div class="col">
+        <%= render partial: 'devise/shared/google_button', locals: { label: 'Sign up with Google' } %>
+      </div>
+    </div>
+  </div>
+</div>
+

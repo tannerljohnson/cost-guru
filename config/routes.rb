@@ -5,15 +5,31 @@ Rails.application.routes.draw do
 
   devise_for :users, controllers: {
     omniauth_callbacks: 'users/omniauth_callbacks',
-    sessions: 'users/sessions'
-  }
+    sessions: 'users/sessions',
+  }, skip: [:registrations]
+
+  devise_scope(:user) do
+    get '/users/sign_up', to: 'users/registrations#new', as: :new_user_registration
+    post '/users', to: 'users/registrations#create', as: :user_registration
+
+    get '/users/invitation', to: 'membership_invitations#show', as: :user_invitation
+  end
 
   resources :accounts do
     resources :analyses
     resources :revenue_months, except: [:show]
+    resources :membership_invitations do
+      member do
+        put 'accept'
+        put 'decline'
+        put 'cancel'
+      end
+    end
 
     get 'inventories', to: 'inventories#index'
     get 'anomalies', to: 'anomalies#index'
+    get 'members', to: 'members#index'
+    get 'members/new', to: 'members#new'
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

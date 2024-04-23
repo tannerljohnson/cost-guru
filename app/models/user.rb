@@ -24,12 +24,15 @@
 #
 class User < ApplicationRecord
   # Include default devise modules. Others available are:
-  # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
-  devise :database_authenticatable, :registerable,
+  # :lockable, :timeoutable, :trackable and :omniauthable
+  devise :database_authenticatable, :registerable, :confirmable,
          :recoverable, :rememberable, :validatable,
          :omniauthable, omniauth_providers: [:google_oauth2]
 
   has_many :accounts, dependent: :destroy
+  has_many :account_memberships, dependent: :destroy
+
+  validate :email_domain_check
 
   def self.from_google(email:, first_name:, last_name:)
     user = User.find_by(email: email)
@@ -48,5 +51,13 @@ class User < ApplicationRecord
     end
 
     user
+  end
+
+  private
+
+  def email_domain_check
+    unless email =~ /\A[\w+\-.]+@makenotion\.com\z/i
+      errors.add(:email, "domain must be @makenotion.com")
+    end
   end
 end

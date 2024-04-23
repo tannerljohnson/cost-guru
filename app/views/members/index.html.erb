@@ -1,0 +1,48 @@
+<section class="container">
+  <div class="row">
+    <div class="col">
+      <h3 class="display-3">Members</h3>
+    </div>
+  </div>
+
+  <div class="row my-2">
+    <div class="col">
+      <div class="display-6">Active</div>
+      <ul class="list-group mt-2">
+        <% @members.map do |member| %>
+          <li class="list-group-item">
+            <code><%= member.user.email %></code> <%= member.user == @account.owner ? '(owner)' : '' %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+
+  <% if @invitations.size >= 1 %>
+    <div class="row">
+      <div class="col">
+        <div class="display-6">Invitations</div>
+        <ul class="list-group mt-2">
+          <% @invitations.map do |invite| %>
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col">
+                  <code><%= invite.email %></code>
+                </div>
+                <div class="col text-end">
+                  <%= link_to "Cancel", cancel_account_membership_invitation_path(@account, invite), data: { turbo_method: :put, turbo_confirm: "Are you sure?" } %>
+                </div>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="row mt-4">
+    <div class="col">
+      <%= link_to "Invite", account_members_new_path(@account), class: "btn btn-outline-primary" %>
+    </div>
+  </div>
+</section>
