@@ -6,6 +6,6 @@ class InvitationMailer < ApplicationMailer
     @token = invitation.token
     @account = invitation.account.name
 
-    mail(to: @email, from: @invited_by.email, subject: "You're invited Artemis")
+    mail(to: @email, subject: "You're invited to Artemis")
   end
 end
