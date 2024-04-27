@@ -40,7 +40,6 @@ gem "sassc-rails"
 gem 'chartkick'
 # gem 'chartjs-ror' # or 'googlecharts' for Google Charts
 
-
 gem 'aws-sdk'
 # Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
 # gem "kredis"
@@ -49,7 +48,7 @@ gem 'aws-sdk'
 # gem "bcrypt", "~> 3.1.7"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem "tzinfo-data", platforms: %i[ windows jruby ]
+# gem "tzinfo-data", platforms: %i[ windows jruby ]
 
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
@@ -79,5 +78,5 @@ group :test do
   gem "selenium-webdriver"
 end
 
-gem "async", "~> 2.6"
+gem "async", ">= 2.6"
 gem 'htmlbeautifier'

@@ -36,3 +36,5 @@
 .idea/*
 .vscode/*
 .ruby-lsp/*
+
+/config/credentials/production.key
