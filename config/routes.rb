@@ -17,6 +17,7 @@ Rails.application.routes.draw do
 
   resources :accounts do
     resources :analyses
+    resources :contracts
     resources :revenue_months, except: [:show]
     resources :membership_invitations do
       member do

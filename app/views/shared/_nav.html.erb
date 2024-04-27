@@ -20,6 +20,10 @@
             <a href="<%= account_anomalies_path(account) %>" class="nav-link <%= 'active' if current_page?(account_anomalies_path(account)) %>" data-turbolinks-action="replace">Anomalies</a>
           </li>
           <li class="nav-item">
+            <a href="<%= account_contracts_path(account) %>" class="nav-link <%= 'active' if current_page?(account_contracts_path(account)) %>" data-turbolinks-action="replace">Contracts
+            </a>
+          </li>
+          <li class="nav-item">
             <a href="<%= account_members_path(account) %>" class="nav-link <%= 'active' if current_page?(account_members_path(account)) %>" data-turbolinks-action="replace">Members
             </a>
           </li>

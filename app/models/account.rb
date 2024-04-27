@@ -21,6 +21,7 @@ class Account < ApplicationRecord
   has_many :revenue_months, dependent: :destroy
   has_many :membership_invitations, dependent: :destroy
   has_many :account_memberships, dependent: :destroy
+  has_many :contracts, dependent: :destroy
 
   after_create_commit :create_membership_for_owner!
 

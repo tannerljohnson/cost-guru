@@ -1,0 +1,40 @@
+<section class="container">
+  <div class="row">
+    <div class="col">
+      <h3 class="display-3">Contract Details</h3>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="card">
+        <div class="card-header">
+          <h4>Basic Details</h4>
+        </div>
+        <div class="card-body">
+          <p><span class="text-secondary">Term Start:</span> <%= @contract.term_start.to_date %></p>
+          <p><span class="text-secondary">Term End:</span> <%= @contract.term_end.to_date %></p>
+          <p><span class="text-secondary">Cross Service Discount:</span> <%= @contract.cross_service_discount %>%</p>
+          <p><span class="text-secondary">Upfront Payment Discount:</span> <%= @contract.upfront_payment_discount %>%
+          </p>
+        </div>
+        <div class="card-footer">
+          <div class="row">
+            <div class="col text-end">
+              <a href="<%= edit_account_contract_path(@account, @contract) %>" class="btn btn-outline-secondary" data-turbolinks-action="replace">Edit
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="row mt-3">
+    <div class="col">
+      <a href="<%= account_contracts_path(@account) %>" class="btn btn-outline-primary" data-turbolinks-action="replace">Back
+      </a>
+    </div>
+  </div>
+</section>

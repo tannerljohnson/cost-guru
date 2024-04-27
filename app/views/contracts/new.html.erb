@@ -1,0 +1,38 @@
+<section class="container">
+  <div class="row">
+    <div class="col">
+      <h3 class="display-3">New Contract</h3>
+    </div>
+  </div>
+
+  <%= form_for [@account, @contract] do |f| %>
+    <div class="mb-2">
+      <%= f.label :term_start, { class: "form-label" } %>
+      <%= f.date_field :term_start, { class: "form-control" } %>
+    </div>
+
+    <div class="mb-2">
+      <%= f.label :term_end, { class: "form-label" } %>
+      <%= f.date_field :term_end, { class: "form-control" } %>
+    </div>
+
+    <div class="mb-3">
+      <%= f.label :cross_service_discount, { class: "form-label" } %>
+      <%= f.number_field :cross_service_discount, step: '0.01', class: "form-control" %>
+    </div>
+
+    <div class="mb-3">
+      <%= f.label :upfront_payment_discount, { class: "form-label" } %>
+      <%= f.number_field :upfront_payment_discount, step: '0.01', class: "form-control" %>
+    </div>
+
+
+    <div class="db-flex">
+      <div class="text-end">
+        <a href="<%= account_contracts_path(@account) %>" class="btn btn-primary-outline" data-turbolinks-action="replace">Back
+        </a>
+        <%= f.submit 'Submit', class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</section>

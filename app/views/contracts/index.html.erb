@@ -1,0 +1,47 @@
+<section class="container">
+  <div class="row">
+    <div class="col">
+      <h3 class="display-3">Contracts</h3>
+    </div>
+  </div>
+
+  <div class="row my-2">
+    <div class="col">
+
+      <table class="table">
+        <thead>
+        <tr>
+          <th>Term Start</th>
+          <th>Term End</th>
+          <th>Cross-Service Discount</th>
+          <th></th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <% @contracts.each do |contract| %>
+          <tr>
+            <td><%= contract.term_start.to_date %></td>
+            <td><%= contract.term_end.to_date %></td>
+            <td><%= contract.cross_service_discount %>%</td>
+            <td>
+              <a href="<%= account_contract_path(@account, contract) %>">
+                View
+              </a>
+            </td>
+            <td>
+              <%= link_to "Delete", account_contract_path(@account, contract), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col">
+      <%= link_to "New", new_account_contract_path(@account), class: "btn btn-primary" %>
+    </div>
+  </div>
+</section>

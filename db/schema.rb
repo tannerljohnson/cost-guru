@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_23_110610) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_27_161720) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -82,6 +82,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_23_110610) do
     t.integer "commitment_years", default: 3, null: false
     t.string "group_by", default: "NONE", null: false
     t.index ["account_id"], name: "index_analyses_on_account_id"
+  end
+
+  create_table "contracts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "term_start", null: false
+    t.datetime "term_end", null: false
+    t.decimal "cross_service_discount", null: false
+    t.decimal "upfront_payment_discount", null: false
+    t.uuid "account_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_contracts_on_account_id"
   end
 
   create_table "cost_and_usages", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
