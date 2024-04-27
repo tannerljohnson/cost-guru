@@ -13,4 +13,5 @@
 #
 class Contract < ApplicationRecord
   belongs_to :account
+  has_many :contract_years
 end

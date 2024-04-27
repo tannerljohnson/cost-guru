@@ -1,0 +1,32 @@
+<section class="container">
+  <div class="row">
+    <div class="col">
+      <h3 class="display-3">New Contract Year</h3>
+    </div>
+  </div>
+
+  <%= form_with model: [@account, @contract, @contract.contract_years.build] do |f| %>
+    <div class="mb-2">
+      <%= f.label :start_date, { class: "form-label" } %>
+      <%= f.date_field :start_date, { class: "form-control" } %>
+    </div>
+
+    <div class="mb-2">
+      <%= f.label :end_date, { class: "form-label" } %>
+      <%= f.date_field :end_date, { class: "form-control" } %>
+    </div>
+
+    <div class="mb-3">
+      <%= f.label :spend_commitment, { class: "form-label" } %>
+      <%= f.number_field :spend_commitment, step: '0', class: "form-control" %>
+    </div>
+
+    <div class="db-flex">
+      <div class="text-end">
+        <a href="<%= account_contract_path(@account, @contract) %>" class="btn btn-secondary-outline" data-turbolinks-action="replace">Back
+        </a>
+        <%= f.submit 'Add Contract Year', class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</section>

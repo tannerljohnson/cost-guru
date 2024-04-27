@@ -18,10 +18,56 @@
           <p><span class="text-secondary">Upfront Payment Discount:</span> <%= @contract.upfront_payment_discount %>%
           </p>
         </div>
+
         <div class="card-footer">
           <div class="row">
             <div class="col text-end">
               <a href="<%= edit_account_contract_path(@account, @contract) %>" class="btn btn-outline-secondary" data-turbolinks-action="replace">Edit
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-3">
+    <div class="col">
+      <div class="card">
+        <div class="card-header">
+          <h4>Contract Years</h4>
+        </div>
+
+        <div class="card-body">
+
+          <table class="table">
+            <thead>
+            <tr>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Spend Commitment</th>
+              <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <% @contract.contract_years.each do |contract_year| %>
+              <tr>
+                <td><%= contract_year.start_date.to_date %></td>
+                <td><%= contract_year.end_date.to_date %></td>
+                <td><%= number_to_currency(contract_year.spend_commitment) %></td>
+                <td>
+                  <%= link_to "Delete", account_contract_contract_year_path(@account, @contract, contract_year), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
+                </td>
+              </tr>
+            <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card-footer">
+          <div class="row">
+            <div class="col text-end">
+              <a href="<%= new_account_contract_contract_year_path(@account, @contract) %>" class="btn btn-outline-secondary" data-turbolinks-action="replace">Add
               </a>
             </div>
           </div>
