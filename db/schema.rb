@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_27_170411) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_27_175055) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -84,6 +84,15 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_27_170411) do
     t.index ["account_id"], name: "index_analyses_on_account_id"
   end
 
+  create_table "contract_year_service_discounts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "service_discount_id"
+    t.uuid "contract_year_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["contract_year_id"], name: "index_contract_year_service_discounts_on_contract_year_id"
+    t.index ["service_discount_id"], name: "index_contract_year_service_discounts_on_service_discount_id"
+  end
+
   create_table "contract_years", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "start_date", null: false
     t.datetime "end_date", null: false
@@ -136,6 +145,18 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_27_170411) do
     t.datetime "updated_at", null: false
     t.index ["account_id", "start_date"], name: "index_revenue_months_on_account_id_and_start_date", unique: true
     t.index ["account_id"], name: "index_revenue_months_on_account_id"
+  end
+
+  create_table "service_discounts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "service", null: false
+    t.jsonb "regions", default: [], null: false
+    t.string "usage_type", null: false
+    t.decimal "price", null: false
+    t.string "price_unit", null: false
+    t.uuid "contract_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["contract_id"], name: "index_service_discounts_on_contract_id"
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

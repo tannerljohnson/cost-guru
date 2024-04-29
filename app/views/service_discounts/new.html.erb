@@ -1,0 +1,48 @@
+<section class="container">
+  <div class="row">
+    <div class="col">
+      <h3 class="display-3">New Service Discount</h3>
+    </div>
+  </div>
+
+  <%= form_with model: [@account, @contract, @contract.service_discounts.build] do |f| %>
+    <div class="mb-2">
+      <%= f.label :service, { class: "form-label" } %>
+      <%= f.select :service, options_for_select(Constants::SERVICES_ELIGIBLE_FOR_SERVICE_DISCOUNTS), {}, class: "form-select" %>
+    </div>
+
+    <div class="mb-2">
+      <%= f.label :regions, { class: "form-label" } %>
+      <%= f.select :regions, options_for_select(Constants::REGIONS_ELIGIBLE_FOR_SERVICE_DISCOUNTS), {}, multiple: true, class: "form-select" %>
+    </div>
+
+    <div class="mb-2">
+      <%= f.label :contract_years, { class: "form-label" } %>
+      <%= f.select :contract_years, options_for_select(@contract.contract_years.map { |year| "#{year.start_date.to_date} - #{year.end_date.to_date}" }, @contract.contract_years.map { |y| y.id }), {}, multiple: true, class: "form-select" %>
+    </div>
+
+    <div class="mb-2">
+      <%= f.label :usage_type, { class: "form-label" } %>
+      <%= f.select :usage_type, options_for_select(Constants::USAGE_TYPES_ELIGIBLE_FOR_SERVICE_DISCOUNTS), {}, class: "form-select" %>
+    </div>
+
+    <div class="mb-3">
+      <%= f.label :price, { class: "form-label" } %>
+      <%= f.number_field :price, step: '0.001', class: "form-control" %>
+    </div>
+
+    <div class="mb-2">
+      <%= f.label :price_unit, { class: "form-label" } %>
+      <%= f.select :usage_type, options_for_select(Constants::PRICE_UNITS_FOR_SERVICE_DISCOUNTS), {}, class: "form-select" %>
+    </div>
+
+
+    <div class="db-flex">
+      <div class="text-end">
+        <a href="<%= account_contract_path(@account, @contract) %>" class="btn btn-secondary-outline" data-turbolinks-action="replace">Back
+        </a>
+        <%= f.submit 'Add Service Discount', class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</section>

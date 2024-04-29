@@ -23,9 +23,4 @@ class ContractYearsController < ApplicationController
   def contract_year_params
     params.require(:contract_year).permit(:start_date, :end_date, :spend_commitment)
   end
-
-  def load_contract!
-    @contract = @account.contracts.find { |contract| contract.id == params[:contract_id] }
-    raise "Contract not found" unless @contract
-  end
 end

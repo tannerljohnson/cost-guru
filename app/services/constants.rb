@@ -99,7 +99,7 @@ class Constants
       "APN1-DataTransfer-Out-Bytes",
       "SAE1-DataTransfer-Out-Bytes",
       "EUC1-DataTransfer-Out-Bytes",
-      "DataTransfer-Out-Bytes",
+      DATA_TRANSFER_OUT_BYTES = "DataTransfer-Out-Bytes",
       "APS3-DataTransfer-Out-Bytes",
       "APS2-DataTransfer-Out-Bytes",
       "EUW2-DataTransfer-Out-Bytes",
@@ -962,6 +962,37 @@ class Constants
     SAVINGS_PLANS_FOR_AWS_COMPUTE_USAGE = "Savings Plans for AWS Compute usage",
     TAX = "Tax",
     WIZ_CLOUD_INFRASTRUCTURE_SECURITY_PLATFORM = "WIZ Cloud Infrastructure Security Platform",
+  ]
+
+  SERVICES_ELIGIBLE_FOR_SERVICE_DISCOUNTS = [AMAZON_SIMPLE_STORAGE_SERVICE, EC2_OTHER]
+  REGIONS = [
+    US_WEST_2 = 'us-west-2',
+    EU_CENTRAL_1 = 'eu-central-1',
+    AP_NORTHEAST_1 = 'ap-northeast-1',
+    AP_NORTHEAST_2 = 'ap-northeast-2'
+  ]
+  REGIONS_ELIGIBLE_FOR_SERVICE_DISCOUNTS = [
+    US_WEST_2,
+    EU_CENTRAL_1,
+    AP_NORTHEAST_1,
+    AP_NORTHEAST_2,
+  ]
+
+  S3_STORAGE_USAGE_TYPES = [
+    # todo fix values
+    STANDARD_STORAGE = 'S3 Standard Storage',
+    STANDARD_INFREQUENT_ACCESS_STORAGE = 'S3 Standard Infrequent Access Storage',
+    INTELLIGENT_TIERING_FREQUENT_ACCESS_STORAGE = 'S3 Intelligent Tiering Frequent Access Storage',
+    INTELLIGENT_TIERING_INFREQUENT_ACCESS_STORAGE = 'S3 Intelligent Tiering Inrequent Access Storage',
+  ]
+  USAGE_TYPES_ELIGIBLE_FOR_SERVICE_DISCOUNTS = [
+    DATA_TRANSFER_OUT_BYTES,
+    *S3_STORAGE_USAGE_TYPES
+  ]
+
+  PRICE_UNITS_FOR_SERVICE_DISCOUNTS = [
+    'GB-Month',
+    'GB'
   ]
 
   SERVICES_TO_IGNORE = [

@@ -19,6 +19,7 @@ Rails.application.routes.draw do
     resources :analyses
     resources :contracts do
       resources :contract_years
+      resources :service_discounts
     end
     resources :revenue_months, except: [:show]
     resources :membership_invitations do

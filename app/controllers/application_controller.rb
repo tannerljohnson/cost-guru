@@ -23,4 +23,9 @@ class ApplicationController < ActionController::Base
     @account = current_user.accounts.find { |account| account.id == params[:account_id] }
     raise "Account not found" unless @account
   end
+
+  def load_contract!
+    @contract = @account.contracts.find { |contract| contract.id == params[:contract_id] }
+    raise "Contract not found" unless @contract
+  end
 end
