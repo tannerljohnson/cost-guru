@@ -61,8 +61,10 @@ class BaseAwsClient
     end
 
     cost_guru_aws_account_credentials = Aws::Credentials.new(
-      Rails.application.credentials.root_aws_account.sts_assume_role_user.iam_access_key_id,
-      Rails.application.credentials.root_aws_account.sts_assume_role_user.iam_secret_access_key
+      ENV['ROOT_AWS_ACCOUNT_STS_IAM_ACCESS_KEY_ID'],
+      ENV['ROOT_AWS_ACCOUNT_STS_IAM_SECRET_ACCESS_KEY'],
+    # Rails.application.credentials.root_aws_account.sts_assume_role_user.iam_access_key_id,
+    # Rails.application.credentials.root_aws_account.sts_assume_role_user.iam_secret_access_key
     )
     sts_client = Aws::STS::Client.new(credentials: cost_guru_aws_account_credentials)
     response = sts_client.assume_role({

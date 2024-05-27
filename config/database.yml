@@ -79,6 +79,7 @@ test:
 #
 production:
   <<: *default
-  database: cost_guru_production
-  username: cost_guru
-  password: <%= ENV["COST_GURU_DATABASE_PASSWORD"] %>
+  url: <%= ENV['DATABASE_URL'] %>
+#  database: cost_guru_production
+#  username: cost_guru
+#  password: <%#= ENV["COST_GURU_DATABASE_PASSWORD"] %>

@@ -38,3 +38,6 @@
 .ruby-lsp/*
 
 /config/credentials/production.key
+
+/config/credentials/development.key
+docker.env

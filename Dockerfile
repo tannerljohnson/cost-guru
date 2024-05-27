@@ -1,8 +1,15 @@
 # syntax = docker/dockerfile:1
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
-ARG RUBY_VERSION=3.2.2
-FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim as base
+FROM node:slim AS node
+FROM registry.docker.com/library/ruby:3.2.2-slim AS base
+
+COPY --from=node /usr/lib /usr/lib
+COPY --from=node /usr/local/share /usr/local/share
+COPY --from=node /usr/local/lib /usr/local/lib
+COPY --from=node /usr/local/include /usr/local/include
+COPY --from=node /usr/local/bin /usr/local/bin
+COPY --from=node /opt /opt
 
 # Rails app lives here
 WORKDIR /rails
@@ -21,41 +28,13 @@ ENV RAILS_ENV="production" \
 FROM base as build
 
 # Install packages needed to build gems and node modules
-#--no-install-recommends
 RUN apt-get install --yes build-essential git curl pkg-config libpq-dev node-gyp python-is-python3
-
-# Install JavaScript dependencies
-#ARG NODE_VERSION=18.17.0
-#ARG YARN_VERSION=1.22
-#ENV PATH=/usr/local/node/bin:$PATH
-#RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
-#    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
-#    npm install -g yarn@$YARN_VERSION && \
-#    rm -rf /tmp/node-build-master \
-#
-RUN curl -sL https://deb.nodesource.com/setup_current.x | bash - &&\
-    apt-get update && \
-    apt-get install --yes --no-install-recommends nodejs &&\
-    npm install -g yarn
-
 
 # Install application gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
-
-## Install SSH client and utilities
-#RUN apt-get install -y openssh-client
-#
-## Add known hosts to verify host key
-#RUN mkdir -p /root/.ssh && \
-#    ssh-keyscan github.com >> /root/.ssh/known_hosts
-
-# Install node modules
-# Do we need to do this?
-#COPY package.json yarn.lock ./
-#RUN yarn install --frozen-lockfile
 
 # Copy application code
 COPY . .
@@ -74,11 +53,6 @@ FROM base
 # Clean up installation packages to reduce image size
 RUN rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-## Install packages needed for deployment
-#RUN apt-get update -qq && \
-#    apt-get install --no-install-recommends -y curl libvips postgresql-client && \
-#    rm -rf /var/lib/apt/lists /var/cache/apt/archives
-
 # Copy built artifacts: gems, application
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build /rails /rails
@@ -93,4 +67,4 @@ ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-CMD ["./bin/rails", "server"]
+CMD ["./bin/rails", "server", "-b", "0.0.0.0", "-p", "3000"]
